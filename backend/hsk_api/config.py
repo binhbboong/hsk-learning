@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     ai_system_daily_limit: int = 50
     admin_emails: str = ""
     allowed_origins: str = "http://localhost:4200"
+    database_url: SecretStr | None = None
     database_path: Path = Path("data/hsk_learning.sqlite3")
 
     @property

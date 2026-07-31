@@ -4,6 +4,14 @@ PRD: docs/business/PRD.md
 Last updated: 2026-07-31  
 Status: Implemented for account-specific AI learning paths
 
+## PostgreSQL production persistence
+
+Production persistence is PostgreSQL selected through `DATABASE_URL`; SQLite remains the local and
+test fallback only. The shared repository stores accounts, revocable sessions, learning profiles,
+generated daily paths, content drafts and AI usage in either dialect. On Vercel, a pooled serverless
+PostgreSQL connection from Neon Marketplace storage keeps data durable across cold starts and
+deployments. Both the Neon database and FastAPI Function run in Singapore (`sin1`).
+
 ## Implemented learning intelligence and content operations
 
 This update supersedes older deferred statements retained later in this document. Every new account
@@ -47,7 +55,7 @@ remain immutable, use continuous lesson numbering and progressively cover HSK 1 
 HSK 6. Promotion requires at least 80% on the level checkpoint and 70% vocabulary retention.
 The first static HSK 1 group remains the entry point. After each completed checkpoint, FastAPI
 evaluates checkpoint and vocabulary-retention thresholds, generates or reinforces the appropriate
-HSK level, validates the full multi-activity bundle and persists it in SQLite. Angular then reloads
+HSK level, validates the full multi-activity bundle and persists it in the configured database. Angular then reloads
 the aggregate path and continues at the next continuous lesson number.
 
 Implemented API boundary:
@@ -69,7 +77,7 @@ Related decisions:
 
 Authentication is now implemented with email/password accounts, revocable bearer sessions and
 per-account learning profiles. FastAPI stores accounts, `scrypt` password hashes, hashed session
-tokens and profile payloads in SQLite. Angular protects `/learn/**`, restores the active session,
+tokens and profile payloads in PostgreSQL production (SQLite local/test). Angular protects `/learn/**`, restores the active session,
 imports existing anonymous progress into an empty account, synchronizes later profile changes and
 clears browser learning state on logout.
 
@@ -118,7 +126,7 @@ tạo bởi OpenAI ở phía máy chủ; toàn bộ bài mới dùng nội dung 
 | AI lesson adapter | Implemented | Dùng OpenAI Responses API với structured output, timeout và kiểm tra schema; API key chỉ tồn tại phía máy chủ. | Epic-4 |
 | Browser audio adapter | Implemented | Dùng speech synthesis cho audio tiếng Trung, MediaRecorder để ghi/nghe lại và chuyển bản ghi sang WAV khi người học yêu cầu AI phân tích. | Epic-3, Epic-6 |
 | Session progress storage | Implemented | Angular services quản lý flip-card, kết quả kỹ năng, ôn lại và khôi phục bằng `sessionStorage`. | Epic-1, Epic-2, Epic-3, Epic-5 |
-| Persistent learner storage | Deferred | Chưa có tài khoản, đồng bộ nhiều thiết bị hoặc lưu dữ liệu dài hạn. | Epic-5 |
+| Persistent learner storage | Implemented | PostgreSQL production lưu tài khoản, session, profile, lộ trình AI, draft và usage; SQLite chỉ dùng local/test. | Epic-5 |
 | Deployment configuration | Implemented | Build frontend/backend, cấu hình biến môi trường và SPA routing cho hai Vercel project. | Tất cả epics |
 
 ## Current Data Flows
@@ -136,7 +144,8 @@ tạo bởi OpenAI ở phía máy chủ; toàn bộ bài mới dùng nội dung 
    người học chọn phân tích AI, bản WAV mới được gửi tới FastAPI và không được lưu lâu dài.
 8. Mỗi lesson tạo kết quả dùng chung, lưu trong phiên để hỗ trợ học lại hoặc chọn kỹ năng khác.
 
-Không có dữ liệu tiến độ hoặc API key nào được gửi tới kho lưu trữ lâu dài trong MVP.
+Dữ liệu tiến độ đã được lưu lâu dài theo tài khoản trong PostgreSQL; API key chỉ tồn tại trong biến
+môi trường server và không được ghi vào database.
 
 ## Cross-Cutting Decisions
 
@@ -147,6 +156,7 @@ Không có dữ liệu tiến độ hoặc API key nào được gửi tới kho
 - AI integration: [ADR AI-generated lessons](../adr/2026-07-30-ai-generated-lessons.md).
 - API contract: [ADR lesson API contract](../adr/2026-07-30-lesson-api-contract.md).
 - Persistent learning profile: [ADR persistent learning loop](../adr/2026-07-30-persistent-learning-loop.md).
+- Production database: [ADR PostgreSQL production persistence](../adr/2026-07-31-postgresql-production-persistence.md).
 - Deployment stack: [ADR FastAPI/Angular/Vercel](../adr/2026-07-30-fastapi-angular-vercel.md).
 - Deployment topology: [ADR separate Vercel projects](../adr/2026-07-30-separate-vercel-projects.md).
 - Secrets: API key chỉ được đọc từ biến môi trường phía FastAPI và không xuất hiện trong
@@ -156,8 +166,10 @@ Không có dữ liệu tiến độ hoặc API key nào được gửi tới kho
 
 - Frontend project root: `frontend`; production output: `dist/frontend/browser`.
 - Backend project root: `backend`; Vercel entrypoint: `app.py`.
+- Production frontend: `https://frontend-three-theta-34.vercel.app`.
+- Production backend: `https://hsk-learning-api.vercel.app`.
 - Frontend nhận URL backend từ `API_BASE_URL` tại build time.
-- Backend nhận danh sách origin frontend từ `CORS_ORIGINS`.
+- Backend nhận danh sách origin frontend từ `ALLOWED_ORIGINS` và PostgreSQL URL từ `DATABASE_URL`.
 - Local development dùng Angular proxy để giữ cùng hợp đồng `/api`.
 
 ## Known Constraints / Technical Debt

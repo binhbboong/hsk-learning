@@ -2,7 +2,11 @@ import json
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
+
+import psycopg
+from psycopg.rows import dict_row
 
 from hsk_api.auth.security import hash_token
 from hsk_api.models.account import AccountRecord, LearningProfilePayload
@@ -15,16 +19,65 @@ EMPTY_PROFILE = LearningProfilePayload(
 )
 
 
+class DatabaseConnection:
+    def __init__(self, raw_connection: Any, dialect: str) -> None:
+        self.raw_connection = raw_connection
+        self.dialect = dialect
+
+    def execute(self, query: str, values: tuple | list = ()):
+        if self.dialect == "postgresql":
+            query = query.replace("?", "%s")
+        return self.raw_connection.execute(query, values)
+
+    def executescript(self, script: str) -> None:
+        if self.dialect == "sqlite":
+            self.raw_connection.executescript(script)
+            return
+        for statement in script.split(";"):
+            if statement.strip():
+                self.execute(statement)
+
+    def __enter__(self) -> "DatabaseConnection":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        try:
+            if exc_type is None:
+                self.raw_connection.commit()
+            else:
+                self.raw_connection.rollback()
+        finally:
+            self.raw_connection.close()
+
+
 class AccountRepository:
-    def __init__(self, database_path: Path) -> None:
-        self.database_path = database_path
-        self.database_path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(
+        self,
+        database_path: Path | None = None,
+        database_url: str | None = None,
+    ) -> None:
+        if database_url:
+            if not database_url.startswith(("postgresql://", "postgres://")):
+                raise ValueError("DATABASE_URL must use the PostgreSQL protocol")
+            self.database_url = database_url
+            self.database_path = None
+            self.dialect = "postgresql"
+        elif database_path is not None:
+            self.database_url = None
+            self.database_path = database_path
+            self.database_path.parent.mkdir(parents=True, exist_ok=True)
+            self.dialect = "sqlite"
+        else:
+            raise ValueError("A database_path or database_url is required")
         self._initialize()
 
-    def _connect(self) -> sqlite3.Connection:
+    def _connect(self) -> DatabaseConnection:
+        if self.dialect == "postgresql":
+            connection = psycopg.connect(self.database_url, row_factory=dict_row)
+            return DatabaseConnection(connection, self.dialect)
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
-        return connection
+        return DatabaseConnection(connection, self.dialect)
 
     def _initialize(self) -> None:
         with self._connect() as connection:
@@ -107,7 +160,7 @@ class AccountRepository:
                         account.created_at.isoformat(),
                     ),
                 )
-        except sqlite3.IntegrityError:
+        except (sqlite3.IntegrityError, psycopg.IntegrityError):
             return None
         return account
 
@@ -214,10 +267,11 @@ class AccountRepository:
         with self._connect() as connection:
             connection.execute(
                 """
-                INSERT OR IGNORE INTO daily_paths(
+                INSERT INTO daily_paths(
                     account_id, path_index, level, payload, created_at
                 )
                 VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(account_id, path_index) DO NOTHING
                 """,
                 (
                     account_id,
@@ -406,7 +460,7 @@ class AccountRepository:
         )
 
     @staticmethod
-    def _to_content_draft(row: sqlite3.Row) -> ContentDraft:
+    def _to_content_draft(row: Any) -> ContentDraft:
         return ContentDraft(
             id=row["id"],
             account_id=row["account_id"],
@@ -420,7 +474,7 @@ class AccountRepository:
         )
 
     @staticmethod
-    def _to_account(row: sqlite3.Row | None) -> AccountRecord | None:
+    def _to_account(row: Any | None) -> AccountRecord | None:
         if row is None:
             return None
         return AccountRecord(

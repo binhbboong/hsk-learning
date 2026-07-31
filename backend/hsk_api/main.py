@@ -24,6 +24,7 @@ _DEFAULT_DAILY_PATH_GENERATOR = object()
 
 def create_app(
     database_path: Path | None = None,
+    database_url: str | None = None,
     pronunciation_analyzer=_DEFAULT_ANALYZER,
     speech_synthesizer=_DEFAULT_ANALYZER,
     daily_path_generator=_DEFAULT_DAILY_PATH_GENERATOR,
@@ -54,7 +55,19 @@ def create_app(
     application.include_router(pronunciation_router)
     application.include_router(analytics_router)
     application.include_router(admin_router)
-    repository = AccountRepository(database_path or settings.database_path)
+    configured_database_url = (
+        settings.database_url.get_secret_value().strip()
+        if settings.database_url
+        else None
+    )
+    if database_url is not None:
+        repository = AccountRepository(database_url=database_url)
+    elif database_path is not None:
+        repository = AccountRepository(database_path=database_path)
+    elif configured_database_url:
+        repository = AccountRepository(database_url=configured_database_url)
+    else:
+        repository = AccountRepository(database_path=settings.database_path)
     application.state.account_repository = repository
     application.state.admin_emails = {
         email.casefold()

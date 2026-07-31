@@ -4,8 +4,8 @@ Spec: docs/specs/user-accounts/Specification.md
 ## Approach
 
 Ba hướng được cân nhắc: dịch vụ Auth bên ngoài, JWT tự chứa, hoặc phiên token thu hồi được trong
-SQLite. Chọn phiên token + SQLite vì không thêm nhà cung cấp, dễ cô lập dữ liệu và đăng xuất có
-hiệu lực ngay. Đổi lại, triển khai nhiều instance sau này cần chuyển SQLite sang database quản lý.
+database. Giữ phiên token thu hồi được để đăng xuất có hiệu lực ngay. SQLite vẫn phục vụ local/test;
+production dùng PostgreSQL qua `DATABASE_URL` để nhiều Vercel Functions chia sẻ dữ liệu bền vững.
 
 ## File/Module Structure
 
@@ -31,9 +31,10 @@ hiệu lực ngay. Đổi lại, triển khai nhiều instance sau này cần ch
 
 ## Risks / Open Questions
 
-- SQLite local không phù hợp Vercel filesystem tạm; production cần Postgres hoặc dịch vụ auth.
+- PostgreSQL production cần pooled connection string và database region gần Vercel Functions.
 - Hồ sơ JSON dùng optimistic last-write-wins trong MVP.
 
 ## Related ADRs
 
 - docs/adr/2026-07-31-user-accounts.md
+- docs/adr/2026-07-31-postgresql-production-persistence.md

@@ -46,10 +46,10 @@ schema ứng dụng vì mô hình không hỗ trợ Structured Outputs.
 ## Risks / Open Questions
 
 - Audio analysis is probabilistic; UI must preserve the assistive disclaimer.
-- SQLite write contention is acceptable for the current single-service scale but must be observed.
+- PostgreSQL is required in production; SQLite remains limited to local development and tests.
 - Admin emails are configuration, not a full role-management system.
 
 ## Related ADRs
 
 - docs/adr/2026-07-31-beginner-first-learning-intelligence.md
-
+- docs/adr/2026-07-31-postgresql-production-persistence.md

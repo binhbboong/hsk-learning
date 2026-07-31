@@ -9,6 +9,7 @@ dependencies = [
   "pydantic-settings>=2.10,<3.0",
   "openai>=1.109,<3.0",
   "python-multipart>=0.0.20,<1.0",
+  "psycopg[binary]>=3.2,<4.0",
   "truststore>=0.10,<1.0",
   "uvicorn>=0.35,<1.0",
 ]
@@ -24,3 +25,6 @@ test = [
 addopts = "-q"
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.vercel]
+entrypoint = "hsk_api.main:app"

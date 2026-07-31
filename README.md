@@ -1,74 +1,115 @@
 # HSK Learning
 
-## Tài khoản người học
+Nền tảng học HSK 1–6 dành cho người Việt. Người học bắt đầu từ HSK 1, học theo lộ trình mỗi
+ngày gồm 5 bài và có thể tiếp tục ngày kế tiếp sau khi hoàn thành checkpoint.
 
-Mở [http://127.0.0.1:4204/auth](http://127.0.0.1:4204/auth) để đăng ký hoặc đăng nhập. Mỗi tài
-khoản có tiến độ, chuỗi ngày, lịch ôn, câu sai và sổ từ riêng. Dữ liệu tài khoản local được lưu
-trong `backend/data/hsk_learning.sqlite3`; không commit file database này.
+## Production
 
-Website học HSK 1-6 cho người Việt, bắt đầu bằng bốn dạng bài HSK 1: từ vựng flip-card,
-ngữ pháp tương tác, nghe hiểu và luyện phát âm có ghi/nghe lại cục bộ. Frontend dùng Angular,
-API dùng FastAPI. Khi có OpenAI API key, backend có thể tạo bài từ vựng theo schema; nếu
-thiếu key hoặc dịch vụ lỗi, hệ thống tự dùng bài HSK 1 mặc định.
+- Website: [frontend-three-theta-34.vercel.app](https://frontend-three-theta-34.vercel.app)
+- API: [hsk-learning-api.vercel.app](https://hsk-learning-api.vercel.app/api/health)
+- API docs: [hsk-learning-api.vercel.app/api/docs](https://hsk-learning-api.vercel.app/api/docs)
+- Database: Neon PostgreSQL Free, Singapore (`sin1`)
 
-## Cấu trúc
+## Tính năng hiện có
 
-- `frontend/`: Angular 21 SPA, unit tests bằng Vitest và E2E bằng Playwright.
-- `backend/`: FastAPI, vocabulary/skill lesson contracts, OpenAI adapter và fallback đã kiểm soát.
-- `docs/`: Vision, PRD, persona, UX, specification, plan, tasks, ADR và architecture.
+- Lộ trình AI tăng dần từ HSK 1 đến HSK 6, mỗi ngày 5 bài và một checkpoint.
+- Hội thoại có âm thanh từng câu; bật/tắt Pinyin và bản dịch tiếng Việt.
+- Flashcard và ôn tập ngắt quãng bằng câu hỏi 4 đáp án.
+- Bài nghe chọn đáp án và sắp xếp từ thành câu.
+- Thu âm, nghe lại và phân tích phát âm AI theo âm tiết/thanh điệu.
+- Sổ từ cá nhân, ôn câu sai và theo dõi tiến độ từng bài.
+- Chuỗi ngày học, hoạt động 7 ngày, tỷ lệ ghi nhớ 30 ngày và gợi ý học tiếp.
+- Tài khoản riêng, đồng bộ tiến độ trên server và phiên đăng nhập có thể thu hồi.
+- Kiểm tra chất lượng, phát hiện nội dung AI trùng lặp và giới hạn chi phí theo ngày.
+- Trang quản trị để xem usage, sửa, duyệt hoặc từ chối bài AI.
+
+## Kiến trúc
+
+| Thành phần | Công nghệ | Trách nhiệm |
+|---|---|---|
+| Frontend | Angular 21, TypeScript, SCSS | Giao diện học, ôn tập, analytics và quản trị |
+| Backend | FastAPI, Python 3.12 | API, xác thực, lộ trình, AI và kiểm tra chất lượng |
+| Production database | Neon PostgreSQL | Tài khoản, session, tiến độ, lộ trình và AI usage |
+| Local/test database | SQLite | Chạy local và kiểm thử không cần dịch vụ ngoài |
+| AI | OpenAI API | Sinh lộ trình, chuyển giọng nói, phát âm và audio mẫu |
+| Hosting | Hai Vercel projects | Deploy frontend/backend độc lập |
+
+```text
+frontend/   Angular SPA
+backend/    FastAPI application và tests
+docs/       Vision, PRD, specs, ADR, UX và architecture
+```
 
 ## Yêu cầu môi trường
 
-- Node.js `^20.19.0`, `^22.12.0` hoặc `^24.0.0` (project hiện được kiểm chứng với Node
-  22.14).
+- Node.js `^20.19.0`, `^22.12.0` hoặc `^24.0.0`.
 - npm 10+.
 - Python 3.12.
 
 ## Chạy local
 
-### 1. Chạy FastAPI
-
-Mở terminal thứ nhất tại repository:
+### 1. Cấu hình backend
 
 ```powershell
+Copy-Item .env.example backend/.env
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -e ".[test]"
-python -m uvicorn app:app --reload --port 8000
 ```
 
-Kiểm tra API tại `http://localhost:8000/api/health` và tài liệu API tại
-`http://localhost:8000/api/docs`.
+Có thể để trống `OPENAI_API_KEY`; hệ thống vẫn chạy với nội dung fallback. Khi không có
+`DATABASE_URL`, backend tự dùng `backend/data/hsk_learning.sqlite3`.
 
-Không cần API key để chạy local. Backend sẽ trả bài fallback hoàn chỉnh.
+### 2. Chạy FastAPI
 
-### 2. Chạy Angular
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m uvicorn app:app --reload --host 127.0.0.1 --port 8000
+```
 
-Mở terminal thứ hai:
+- Health: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
+- API docs: [http://127.0.0.1:8000/api/docs](http://127.0.0.1:8000/api/docs)
+
+### 3. Chạy Angular
+
+Mở terminal khác:
 
 ```powershell
 cd frontend
 npm ci
-npm start
+npm start -- --host 127.0.0.1 --port 4200
 ```
 
-Mở `http://localhost:4200`. Angular development server chuyển tiếp `/api` sang FastAPI ở
-port 8000.
+Mở [http://127.0.0.1:4200/auth](http://127.0.0.1:4200/auth). Proxy Angular chuyển `/api`
+tới backend tại port 8000.
 
-## Bật bài học AI
+## Biến môi trường
 
-Sao chép `.env.example` thành `backend/.env`, sau đó điền:
+Các biến backend nằm trong `backend/.env`; không đặt API key trong frontend.
+
+| Biến | Bắt buộc | Mô tả |
+|---|---:|---|
+| `OPENAI_API_KEY` | Không | API key phía server; thiếu key sẽ dùng fallback |
+| `OPENAI_MODEL` | Không | Model tạo lộ trình AI |
+| `OPENAI_TRANSCRIPTION_MODEL` | Không | Chuyển giọng nói tiếng Trung thành văn bản |
+| `OPENAI_AUDIO_MODEL` | Không | Phân tích âm thanh/phát âm |
+| `OPENAI_SPEECH_MODEL` | Không | Sinh audio mẫu |
+| `OPENAI_DAILY_PATH_TIMEOUT_SECONDS` | Không | Timeout khi tạo lộ trình |
+| `AI_ACCOUNT_DAILY_LIMIT` | Không | Giới hạn lượt tạo AI mỗi tài khoản/ngày |
+| `AI_SYSTEM_DAILY_LIMIT` | Không | Giới hạn lượt tạo AI toàn hệ thống/ngày |
+| `ADMIN_EMAILS` | Không | Danh sách email admin, ngăn cách bằng dấu phẩy |
+| `ALLOWED_ORIGINS` | Có ở production | Danh sách frontend origin được phép gọi API |
+| `DATABASE_URL` | Có ở production | PostgreSQL pooled connection string |
+| `API_BASE_URL` | Có khi build frontend | URL backend, không có dấu `/` cuối |
+
+Ví dụ cấp quyền quản trị:
 
 ```dotenv
-OPENAI_API_KEY=your-server-side-key
-OPENAI_MODEL=gpt-5.6
-OPENAI_TIMEOUT_SECONDS=15
-ALLOWED_ORIGINS=http://localhost:4200
+ADMIN_EMAILS=binhqd@vnpt.vn
 ```
 
-Không dùng tiền tố public cho API key và không đặt key trong `frontend/`. File `.env` đã
-được gitignore.
+Tài khoản phải đăng xuất và đăng nhập lại sau khi email được thêm vào danh sách admin.
 
 ## Kiểm thử
 
@@ -76,18 +117,25 @@ Backend:
 
 ```powershell
 cd backend
-python -m pytest
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Frontend unit tests và production build:
+PostgreSQL integration test dùng `TEST_POSTGRES_URL` trỏ tới database test riêng:
+
+```powershell
+$env:TEST_POSTGRES_URL='postgresql://user:password@127.0.0.1:5432/hsk_test'
+.\.venv\Scripts\python.exe -m pytest -q tests/test_postgres_repository.py
+```
+
+Frontend:
 
 ```powershell
 cd frontend
-npm test -- --watch=false
+npx ng test --watch=false
 npm run build
 ```
 
-E2E tự chạy FastAPI ở port 8010 và Angular ở port 4200:
+E2E:
 
 ```powershell
 cd frontend
@@ -95,41 +143,58 @@ $env:PYTHON = (Resolve-Path '..\backend\.venv\Scripts\python.exe')
 npm run e2e
 ```
 
-## Deploy lên Vercel
+Kết quả xác minh gần nhất: 52 backend tests và 71 frontend tests đạt; Angular production build
+thành công.
 
-Repository dùng hai Vercel project từ cùng một monorepo để frontend và backend build độc lập.
+## Deploy Vercel
 
-### Backend project
+Repository dùng hai Vercel projects trong cùng monorepo.
 
-1. Import repository vào Vercel.
-2. Chọn Root Directory là `backend`.
-3. Vercel tự nhận FastAPI từ `backend/app.py`; Python được pin ở 3.12.
-4. Thêm các environment variables phía server:
-   - `OPENAI_API_KEY` (tùy chọn; không có thì dùng fallback).
-   - `OPENAI_MODEL` (mặc định `gpt-5.6`).
-   - `OPENAI_TIMEOUT_SECONDS` (mặc định `15`).
-   - `ALLOWED_ORIGINS` (URL frontend, nhiều URL ngăn cách bằng dấu phẩy).
-5. Deploy và kiểm tra `https://<backend-domain>/api/health`.
+### Backend — `hsk-learning-api`
 
-### Frontend project
+1. Root Directory: `backend`.
+2. Framework Preset: FastAPI.
+3. Kết nối Neon PostgreSQL Marketplace với environment production.
+4. Cấu hình `OPENAI_API_KEY`, `ADMIN_EMAILS` và `ALLOWED_ORIGINS`.
+5. `backend/vercel.json` đặt FastAPI Function tại `sin1`, gần Neon database.
+6. Deploy và kiểm tra `/api/health`.
 
-1. Import cùng repository thành project thứ hai.
-2. Chọn Root Directory là `frontend` và Framework Preset là Angular.
-3. Thêm environment variable công khai:
-   - `API_BASE_URL=https://<backend-domain>` (không có dấu `/` cuối).
-4. Deploy. `frontend/vercel.json` giữ các route `/lesson`, `/study` và `/results` hoạt động
-   sau khi refresh.
-5. Cập nhật `ALLOWED_ORIGINS` của backend bằng domain frontend thực tế và redeploy backend.
+```powershell
+cd backend
+npx vercel --prod
+```
 
-Với preview deployments, thêm từng frontend preview origin cần dùng vào `ALLOWED_ORIGINS`.
-Không đặt wildcard origin khi bật dữ liệu người dùng hoặc authentication trong tương lai.
+### Frontend — `frontend`
 
-## Tài liệu nguồn chính thức
+1. Root Directory: `frontend`.
+2. Framework Preset: Angular.
+3. Đặt `API_BASE_URL=https://hsk-learning-api.vercel.app`.
+4. Deploy frontend.
+5. Đưa domain frontend vào `ALLOWED_ORIGINS` của backend và redeploy backend.
 
-- Angular version compatibility: https://angular.dev/reference/versions
-- Angular deployment: https://angular.dev/tools/cli/deployment
-- FastAPI deployment: https://fastapi.tiangolo.com/deployment/
-- FastAPI on Vercel: https://vercel.com/docs/frameworks/backend/fastapi
-- Vercel monorepos: https://vercel.com/docs/monorepos
-- Vercel SPA rewrites: https://vercel.com/kb/guide/why-is-my-deployed-project-giving-404
-- OpenAI structured outputs: https://developers.openai.com/api/docs/guides/structured-outputs
+```powershell
+cd frontend
+npx vercel --prod
+```
+
+Không dùng SQLite hoặc `/tmp` để lưu tài khoản production. Không dùng wildcard CORS khi website
+có xác thực người dùng.
+
+## Tài liệu dự án
+
+- [Product Vision](docs/business/Vision.md)
+- [PRD](docs/business/PRD.md)
+- [Architecture](docs/architecture/Architecture.md)
+- [ADR index](docs/adr/DECISIONS.md)
+- [PostgreSQL production ADR](docs/adr/2026-07-31-postgresql-production-persistence.md)
+- [Learning intelligence specification](docs/specs/learning-intelligence-operations/Specification.md)
+
+## Tài liệu tham khảo
+
+- [Angular deployment](https://angular.dev/tools/cli/deployment)
+- [FastAPI deployment](https://fastapi.tiangolo.com/deployment/)
+- [FastAPI on Vercel](https://vercel.com/docs/frameworks/backend/fastapi)
+- [Vercel monorepos](https://vercel.com/docs/monorepos)
+- [Vercel Function regions](https://vercel.com/docs/functions/configuring-functions/region)
+- [PostgreSQL on Vercel](https://vercel.com/docs/postgres)
+- [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs)

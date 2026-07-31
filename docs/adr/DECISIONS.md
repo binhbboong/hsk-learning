@@ -12,6 +12,7 @@ reconcile since each ADR's identity is already unique.
 
 | Date | Decision | Status | Supersedes | Affects |
 |---|---|---|---|---|
+| 2026-07-31 | [Dùng PostgreSQL cho persistence production](2026-07-31-postgresql-production-persistence.md) | Accepted | SQLite production trong 2026-07-31-user-accounts | Repository, accounts, profiles, AI paths, Vercel deployment |
 | 2026-07-31 | [Bắt đầu HSK 1 và thêm learning intelligence có kiểm soát](2026-07-31-beginner-first-learning-intelligence.md) | Accepted | — | Onboarding, AI quality/cost, pronunciation, analytics, content admin |
 | 2026-07-31 | [Dùng Ngày làm đơn vị trải nghiệm ngoài cùng](2026-07-31-learning-day-container.md) | Accepted | — | Daily path API, dashboard, checkpoints, progress terminology |
 | 2026-07-31 | [Server sở hữu và lưu bất biến lộ trình AI](2026-07-31-server-owned-ai-paths.md) | Accepted | — | Daily path persistence, API, account deletion, synchronization |
