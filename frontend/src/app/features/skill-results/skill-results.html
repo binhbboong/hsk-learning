@@ -1,0 +1,32 @@
+<main class="result-page">
+  @if (results.result(); as result) {
+    <section class="result-panel">
+      <div class="completion-mark" aria-hidden="true">✓</div>
+      <p>Hoàn thành bài {{ label(result.kind) }}</p>
+      <h1>{{ result.title }}</h1>
+      <div class="score">
+        <strong>{{ result.score }} / {{ result.total }}</strong>
+        <span>{{ result.kind === 'pronunciation' ? 'mức tự đánh giá' : 'câu chính xác' }}</span>
+      </div>
+      <div class="insights">
+        <article>
+          <p>Điều bạn vừa làm được</p>
+          <strong>{{ result.summary }}</strong>
+        </article>
+        <article>
+          <p>Gợi ý tiếp theo</p>
+          <strong>{{ result.nextTip }}</strong>
+        </article>
+      </div>
+      <div class="actions">
+        <a data-testid="retry-skill" class="button secondary" [routerLink]="result.retryRoute">Học lại</a>
+        <a data-testid="back-skills" class="button primary" routerLink="/skills">Chọn kỹ năng khác</a>
+      </div>
+    </section>
+  } @else {
+    <section class="result-panel empty">
+      <h1>Chưa có kết quả kỹ năng.</h1>
+      <a class="button primary" routerLink="/skills">Chọn một bài học</a>
+    </section>
+  }
+</main>

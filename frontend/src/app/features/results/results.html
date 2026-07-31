@@ -1,0 +1,62 @@
+<main class="results-page">
+  @if (session.results().total > 0; as hasResults) {
+    <section class="results-panel">
+      <div class="completion-mark" aria-hidden="true">✓</div>
+      <div class="headline">
+        <p>Hoàn thành phiên học</p>
+        <h1>Bạn vừa hoàn thành {{ session.results().total }} thẻ.</h1>
+      </div>
+
+      <dl class="summary">
+        <div>
+          <dt>Đã nhớ</dt>
+          <dd>{{ session.results().remembered }} đã nhớ</dd>
+        </div>
+        <div>
+          <dt>Cần ôn</dt>
+          <dd>{{ session.results().review }} cần ôn</dd>
+        </div>
+      </dl>
+
+      @if (session.results().reviewCards.length > 0) {
+        <section class="review-list" aria-labelledby="review-title">
+          <h2 id="review-title">Từ cần ôn lại</h2>
+          <div>
+            @for (card of session.results().reviewCards; track card.id) {
+              <article>
+                <strong lang="zh-Hans">{{ card.hanzi }}</strong>
+                <span>{{ card.pinyin }}</span>
+                <span>{{ card.meaning_vi }}</span>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      <div class="actions">
+        @if (session.results().reviewCards.length > 0) {
+          <button
+            class="button primary"
+            data-testid="review-cards"
+            type="button"
+            (click)="startReview()"
+          >
+            Ôn lại từ chưa nhớ
+          </button>
+        }
+        <a
+          class="button secondary"
+          data-testid="back-dashboard"
+          routerLink="/"
+        >
+          Về lộ trình
+        </a>
+      </div>
+    </section>
+  } @else {
+    <section class="results-panel empty-state">
+      <h1>Chưa có kết quả phiên học.</h1>
+      <a class="button primary" routerLink="/">Bắt đầu từ lộ trình</a>
+    </section>
+  }
+</main>

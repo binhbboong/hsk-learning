@@ -1,0 +1,227 @@
+<main class="learning-home">
+  <header class="hero">
+    <div>
+      <p>Lộ trình HSK {{ path()?.current_level ?? 1 }}</p>
+      <h1>Học theo từng Ngày, tiến bộ qua từng Bài.</h1>
+    </div>
+    <div class="streak" aria-label="Chuỗi ngày học">
+      <span aria-hidden="true">火</span>
+      <strong>Chuỗi {{ progress.streak() }} ngày</strong>
+      <small>Kỷ lục {{ repository.profile().streak.longest }} ngày</small>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <section class="next-card state-card" aria-live="polite">Đang tải lộ trình...</section>
+  } @else if (error()) {
+    <section class="next-card state-card" role="alert">
+      <h2>Không thể tải lộ trình.</h2>
+      <p>Tiến độ trên thiết bị vẫn được giữ an toàn.</p>
+    </section>
+  } @else if (path(); as learningPath) {
+    <section class="next-card">
+      <div>
+        <p>Việc nên làm tiếp</p>
+        <h2>{{ nextAction().title }}</h2>
+      </div>
+      @if (nextAction().kind === 'generate') {
+        <button
+          data-testid="generate-next-path"
+          class="button primary"
+          type="button"
+          [disabled]="generatingPath()"
+          (click)="generateNextPath()"
+        >
+          {{ generatingPath() ? 'AI đang tạo…' : 'Thử lại' }}
+        </button>
+      } @else {
+        <a
+          data-testid="next-action"
+          class="button primary"
+          [routerLink]="nextAction().route"
+          [queryParams]="nextAction().queryParams ?? null"
+        >
+          Bắt đầu <span aria-hidden="true">→</span>
+        </a>
+      }
+    </section>
+    @if (generationError()) {
+      <p class="state-card" role="alert">{{ generationError() }}</p>
+    }
+
+    <section class="insights" aria-labelledby="insights-title">
+      <div class="section-heading">
+        <p>Nhìn lại để học đúng chỗ</p>
+        <h2 id="insights-title">Phân tích tiến độ</h2>
+      </div>
+      @if (insightsLoading()) {
+        <div class="insight-state" aria-live="polite">Đang tổng hợp tiến độ…</div>
+      } @else if (insightsError()) {
+        <div class="insight-state" role="status">
+          <strong>Phân tích tiến độ tạm thời chưa có.</strong>
+          <span>Bạn vẫn có thể tiếp tục lộ trình bình thường.</span>
+        </div>
+      } @else if (insights(); as learningInsights) {
+        <div class="insight-grid">
+          <article>
+            <span>Hoạt động 7 ngày</span>
+            <div class="activity-week" aria-label="Hoạt động 7 ngày gần nhất">
+              @for (day of learningInsights.activity_days; track day.date) {
+                <div
+                  data-testid="activity-day"
+                  [class.active]="day.active"
+                  [attr.aria-label]="day.date + ': ' + (day.active ? day.count + ' hoạt động' : 'chưa học')"
+                >
+                  <strong>{{ day.date.slice(8) }}</strong>
+                  <small>{{ day.active ? day.count : '–' }}</small>
+                </div>
+              }
+            </div>
+          </article>
+          <article>
+            <span>Ghi nhớ 30 ngày</span>
+            <strong class="retention">
+              {{ learningInsights.retention_30d.rate === null
+                ? 'Chưa đủ dữ liệu'
+                : (learningInsights.retention_30d.rate * 100).toFixed(0) + '%' }}
+            </strong>
+            <small>{{ learningInsights.retention_30d.label_vi }}</small>
+          </article>
+          <article class="weakness">
+            <span>Kỹ năng cần ưu tiên</span>
+            @if (learningInsights.weaknesses[0]; as weakness) {
+              <strong>{{ weakness.label_vi }}</strong>
+              <small>{{ weakness.reason_vi }}</small>
+            } @else {
+              <strong>Chưa có điểm yếu nổi bật</strong>
+              <small>Tiếp tục học để hệ thống có thêm dữ liệu.</small>
+            }
+          </article>
+        </div>
+        <a
+          data-testid="insight-recommendation"
+          class="insight-action"
+          [routerLink]="learningInsights.recommendation.route"
+          [queryParams]="learningInsights.recommendation.query_params"
+        >
+          <span>Gợi ý ôn cá nhân hóa</span>
+          <strong>{{ learningInsights.recommendation.title }}</strong>
+          <small>{{ learningInsights.recommendation.reason_vi }}</small>
+          <b>Ôn ngay →</b>
+        </a>
+      }
+    </section>
+
+    <section class="metrics" aria-label="Tiến độ học">
+      <article>
+        <span>Tiến độ bài học</span>
+        <strong>{{ progress.completedCountFor(learningPath) }} / {{ learningPath.lessons.length }} bài</strong>
+        <small>{{ progress.completionRateFor(learningPath) }}%</small>
+      </article>
+      <article>
+        <span>Đến hạn hôm nay</span>
+        <strong>{{ dueCount() }} thẻ</strong>
+        <small>Ôn ngắt quãng</small>
+      </article>
+      <article>
+        <span>Cần sửa lại</span>
+        <strong>{{ mistakes.items().length }} câu</strong>
+        <small>Từ các bài đã làm</small>
+      </article>
+    </section>
+
+    <section class="lesson-path" aria-labelledby="lesson-path-title">
+      <div class="section-heading">
+        <p>Lộ trình theo Ngày</p>
+        <h2 id="lesson-path-title">
+          Ngày {{ learningPath.current_day_number }} ·
+          {{ learningPath.lessons.length }} Bài đã mở
+        </h2>
+      </div>
+      <div class="learning-days">
+        @for (day of displayedDays(); track day.day_number) {
+          <article
+            class="learning-day"
+            [class.complete]="progress.isDayCompleted(day)"
+            [attr.data-testid]="'learning-day-' + day.day_number"
+          >
+            <header>
+              <div>
+                <p>Ngày {{ day.day_number }} · {{ dayStatus(day) }}</p>
+                <h3>
+                  Bài {{ day.lesson_start }}–{{ day.lesson_end }}
+                  · HSK {{ day.level }} · độ khó {{ day.difficulty }}/5
+                </h3>
+              </div>
+              <strong>
+                {{ progress.completedCountForDay(day) }} / 5 Bài
+              </strong>
+            </header>
+            <div
+              class="day-progress"
+              role="progressbar"
+              [attr.aria-label]="'Tiến độ Ngày ' + day.day_number"
+              [attr.aria-valuenow]="progress.completedCountForDay(day)"
+              aria-valuemin="0"
+              aria-valuemax="5"
+            >
+              <span [style.width.%]="progress.completedCountForDay(day) * 20"></span>
+            </div>
+            <ol>
+              @for (lesson of lessonsForDay(day, learningPath); track lesson.id) {
+                <li [class.complete]="repository.profile().completedLessonIds.includes(lesson.id)">
+                  <span>{{ lesson.number < 10 ? '0' : '' }}{{ lesson.number }}</span>
+                  <div>
+                    <h4>{{ lesson.title }}</h4>
+                    <p>{{ lesson.goal }}</p>
+                  </div>
+                  <a [routerLink]="['/learn/lesson', lesson.number]">
+                    {{ repository.profile().completedLessonIds.includes(lesson.id) ? 'Học lại' : 'Mở bài' }}
+                  </a>
+                </li>
+              }
+            </ol>
+            <footer>
+              <span>Checkpoint Bài {{ day.lesson_start }}–{{ day.lesson_end }}</span>
+              @if (progress.isDayCompleted(day)) {
+                <strong>Đã hoàn thành</strong>
+              } @else if (progress.completedCountForDay(day) === 5) {
+                <a
+                  routerLink="/learn/checkpoint"
+                  [queryParams]="{ start: day.lesson_start }"
+                >Làm checkpoint</a>
+              } @else {
+                <small>Hoàn thành đủ 5 Bài để mở</small>
+              }
+            </footer>
+          </article>
+        }
+      </div>
+    </section>
+
+    <nav class="tool-links" aria-label="Công cụ học tập">
+      <a
+        data-testid="open-flipcard-review"
+        class="flipcard-link"
+        routerLink="/learn/review"
+        [queryParams]="{ source: 'srs' }"
+      >
+        <small>Ôn tập ngắt quãng</small>
+        <strong>Ôn từ bằng flipcard</strong>
+        <span>{{ dueCount() }} thẻ đến hạn · Lật thẻ rồi chọn Quên, Khó hoặc Nhớ</span>
+      </a>
+      <a
+        data-testid="open-mistake-review"
+        routerLink="/learn/review"
+        [queryParams]="{ source: 'mistakes' }"
+      >
+        <strong>Ôn câu làm sai</strong>
+        <span>{{ mistakes.items().length }} câu cần sửa lại</span>
+      </a>
+      <a data-testid="open-notebook" routerLink="/learn/notebook">
+        <strong>Sổ từ cá nhân</strong>
+        <span>{{ notebook.words().length }} từ đã lưu</span>
+      </a>
+    </nav>
+  }
+</main>

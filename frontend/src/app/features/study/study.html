@@ -1,0 +1,85 @@
+<main class="study-page">
+  <header class="study-header">
+    <a routerLink="/lesson">← Thoát</a>
+    <div>
+      <strong>Bài HSK 1</strong>
+      @if (session.totalCards() > 0) {
+        <span>{{ session.currentPosition() }} / {{ session.totalCards() }}</span>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <section class="flash-card loading-card" aria-live="polite">
+      <div class="skeleton hanzi"></div>
+      <div class="skeleton"></div>
+    </section>
+  } @else if (error()) {
+    <section class="flash-card state-card" role="alert">
+      <h1>Chưa thể tải phiên học.</h1>
+      <p>Hãy quay lại tổng quan bài học và thử lại.</p>
+      <a class="button secondary" routerLink="/lesson">Về bài học</a>
+    </section>
+  } @else if (session.currentCard(); as card) {
+    <section class="flash-card" [class.revealed]="session.revealed()">
+      <div class="card-prompt">
+        <p>Hãy nhớ nghĩa và cách đọc</p>
+        <h1 lang="zh-Hans">{{ card.hanzi }}</h1>
+      </div>
+
+      @if (!session.revealed()) {
+        <button
+          class="button primary reveal-button"
+          data-testid="reveal"
+          type="button"
+          (click)="reveal()"
+        >
+          Lật thẻ
+        </button>
+      } @else {
+        <div class="answer" aria-live="polite">
+          <div>
+            <span>Pinyin</span>
+            <strong>{{ card.pinyin }}</strong>
+          </div>
+          <div>
+            <span>Hán-Việt</span>
+            <strong>{{ card.sino_vietnamese }}</strong>
+          </div>
+          <div>
+            <span>Nghĩa</span>
+            <strong>{{ card.meaning_vi }}</strong>
+          </div>
+          <blockquote>
+            <p lang="zh-Hans">{{ card.example_zh }}</p>
+            <footer>{{ card.example_vi }}</footer>
+          </blockquote>
+        </div>
+
+        <div class="rating-actions">
+          <button
+            class="button secondary"
+            data-testid="review"
+            type="button"
+            (click)="rate('review')"
+          >
+            Chưa nhớ
+          </button>
+          <button
+            class="button primary"
+            data-testid="remembered"
+            type="button"
+            (click)="rate('remembered')"
+          >
+            Đã nhớ
+          </button>
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="flash-card state-card">
+      <h1>Phiên học chưa có thẻ.</h1>
+      <a class="button secondary" routerLink="/lesson">Về bài học</a>
+    </section>
+  }
+</main>

@@ -1,0 +1,75 @@
+<main class="pronunciation-page">
+  <header class="practice-header">
+    <a routerLink="/skills">← Thoát</a>
+    <strong>Phát âm HSK 1</strong>
+  </header>
+
+  @if (loading()) {
+    <section class="coach-panel state-panel" aria-live="polite">Đang chuẩn bị mẫu phát âm...</section>
+  } @else if (error()) {
+    <section class="coach-panel state-panel" role="alert">
+      <h1>Không thể tải bài phát âm.</h1>
+      <a class="button secondary" routerLink="/skills">Về danh mục</a>
+    </section>
+  } @else if (lesson(); as currentLesson) {
+    <section class="coach-panel">
+      <div class="target">
+        <p>Mẫu hôm nay</p>
+        <h1 lang="zh-Hans">{{ currentLesson.hanzi }}</h1>
+        <strong>{{ currentLesson.pinyin }}</strong>
+        <span>{{ currentLesson.meaning_vi }}</span>
+        <button data-testid="play-sample" class="button secondary" type="button" (click)="playSample()">▶ Nghe mẫu</button>
+      </div>
+
+      <ol class="tone-path" aria-label="Đường thanh điệu">
+        @for (step of currentLesson.tone_path; track step; let index = $index) {
+          <li><span>0{{ index + 1 }}</span><p>{{ step }}</p></li>
+        }
+      </ol>
+
+      <section class="recording-zone">
+        <h2>Ghi âm và nghe lại</h2>
+        <p>Bản ghi chỉ tồn tại trên thiết bị này và không được tải lên máy chủ.</p>
+        @if (!recording()) {
+          <button data-testid="start-recording" class="button primary" type="button" (click)="startRecording()">
+            Bắt đầu ghi
+          </button>
+        } @else {
+          <button data-testid="stop-recording" class="button primary recording" type="button" (click)="stopRecording()">
+            Dừng ghi
+          </button>
+        }
+
+        @if (recordingUrl(); as url) {
+          <audio data-testid="recording-playback" [src]="url" controls></audio>
+        }
+        @if (microphoneUnavailable()) {
+          <div class="microphone-fallback" role="status">
+            <strong>Microphone không khả dụng.</strong>
+            <p>Bạn vẫn có thể nghe mẫu, nói thành tiếng và tự đánh giá bên dưới.</p>
+          </div>
+        }
+      </section>
+
+      <aside class="vietnamese-tip">
+        <p>Lỗi người Việt thường gặp</p>
+        <strong>{{ currentLesson.common_mistake_vi }}</strong>
+        <p>{{ currentLesson.correction_tip_vi }}</p>
+      </aside>
+
+      <section class="self-rating">
+        <h2>Sau khi nghe lại, bạn thấy thế nào?</h2>
+        <div>
+          <button type="button" [class.selected]="rating() === 'retry'" (click)="rate('retry')">Chưa giống</button>
+          <button type="button" [class.selected]="rating() === 'close'" (click)="rate('close')">Gần đúng</button>
+          <button type="button" [class.selected]="rating() === 'matched'" (click)="rate('matched')">Đã giống</button>
+        </div>
+        <button data-testid="complete-pronunciation" class="button primary" type="button" [disabled]="!rating()" (click)="complete()">
+          Hoàn thành bài
+        </button>
+      </section>
+    </section>
+  } @else {
+    <section class="coach-panel state-panel"><h1>Chưa có mẫu phát âm.</h1></section>
+  }
+</main>

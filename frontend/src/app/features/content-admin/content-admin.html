@@ -1,0 +1,79 @@
+<main class="content-admin">
+  <header>
+    <div>
+      <a routerLink="/learn">← Về lộ trình</a>
+      <p>Vận hành an toàn</p>
+      <h1>Quản trị nội dung AI</h1>
+    </div>
+    @if (usage(); as currentUsage) {
+      <section class="usage" aria-label="Usage AI hôm nay">
+        <strong>{{ currentUsage.today_requests }} / {{ currentUsage.system_daily_limit }} lượt hôm nay</strong>
+        <span>{{ currentUsage.input_tokens + currentUsage.output_tokens }} token</span>
+        <small>{{ currentUsage.successful_requests }} thành công · {{ currentUsage.failed_requests }} lỗi/chờ duyệt</small>
+      </section>
+    }
+  </header>
+
+  @if (error()) { <p class="state error" role="alert">{{ error() }}</p> }
+  @if (message()) { <p class="state" aria-live="polite">{{ message() }}</p> }
+
+  @if (loading()) {
+    <section class="state">Đang tải hàng đợi nội dung…</section>
+  } @else {
+    <section class="workspace">
+      <aside>
+        <h2>Chờ duyệt · {{ drafts().length }}</h2>
+        @for (draft of drafts(); track draft.id) {
+          <button
+            type="button"
+            [class.current]="selected()?.id === draft.id"
+            (click)="choose(draft)"
+          >
+            <strong>Ngày {{ draft.path_index }}</strong>
+            <span>HSK {{ $any(draft.payload)['level'] ?? '?' }}</span>
+            <small>{{ draft.quality.passed ? 'Đủ điều kiện' : draft.quality.issues[0] }}</small>
+          </button>
+        } @empty {
+          <p>Không có nội dung chờ duyệt.</p>
+        }
+      </aside>
+
+      @if (selected(); as draft) {
+        <article>
+          <header>
+            <div>
+              <p>Ngày {{ draft.path_index }} · tài khoản {{ draft.account_id }}</p>
+              <h2>{{ draft.quality.passed ? 'Sẵn sàng duyệt' : 'Cần chỉnh sửa' }}</h2>
+            </div>
+            <span>{{ draft.status }}</span>
+          </header>
+          @if (draft.quality.issues.length) {
+            <ul class="issues">
+              @for (issue of draft.quality.issues; track issue) { <li>{{ issue }}</li> }
+            </ul>
+          }
+          <label for="content-json">Nội dung có cấu trúc</label>
+          <textarea
+            id="content-json"
+            rows="24"
+            [value]="editorValue()"
+            (input)="updateEditor($any($event.target).value)"
+          ></textarea>
+          <footer>
+            <button type="button" [disabled]="saving()" (click)="save()">Lưu bản sửa</button>
+            <button type="button" class="reject" [disabled]="saving()" (click)="reject()">Từ chối</button>
+            <button
+              type="button"
+              class="approve"
+              [disabled]="saving() || !draft.quality.passed"
+              (click)="approve()"
+            >Duyệt & phát hành</button>
+          </footer>
+        </article>
+      } @else {
+        <article class="empty">Chọn một nội dung để xem chi tiết.</article>
+      }
+    </section>
+  }
+</main>
+

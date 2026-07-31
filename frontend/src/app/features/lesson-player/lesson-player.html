@@ -1,0 +1,217 @@
+<main class="lesson-player">
+  <header class="lesson-header">
+    <a routerLink="/learn">← Thoát</a>
+    <div>
+      <strong>Bài {{ lesson()?.number ?? '' }}</strong>
+      <span>{{ stepNumber() }} / 4 hoạt động</span>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <section class="activity-card state-card" aria-live="polite">Đang tải bài học...</section>
+  } @else if (error()) {
+    <section class="activity-card state-card" role="alert">
+      <h1>Không thể tải bài học.</h1>
+      <a class="button secondary" routerLink="/learn">Về lộ trình</a>
+    </section>
+  } @else if (lesson(); as currentLesson) {
+    @if (lessonCompleted()) {
+      <section class="activity-card completion-state" aria-live="polite">
+        <span aria-hidden="true">✓</span>
+        <h1>Hoàn thành Bài {{ currentLesson.number }}</h1>
+        <p>Tiến độ và từ mới đã được lưu. Bạn có thể học tiếp bài kế tiếp ngay hoặc quay về lộ trình.</p>
+        <div class="completion-actions">
+          <a
+            data-testid="continue-next-lesson"
+            class="button primary"
+            [routerLink]="nextLearningRoute()"
+            [queryParams]="nextLearningQueryParams()"
+          >
+            {{ nextLearningLabel() }} →
+          </a>
+          <a class="button secondary" routerLink="/learn">Về lộ trình</a>
+        </div>
+      </section>
+    } @else {
+    <nav class="activity-progress" aria-label="Tiến độ hoạt động">
+      @for (item of [
+        { id: 'dialogue', label: 'Hội thoại' },
+        { id: 'listening', label: 'Nghe' },
+        { id: 'sentence-order', label: 'Xếp câu' },
+        { id: 'pronunciation', label: 'Phát âm' }
+      ]; track item.id) {
+        <button type="button" [class.current]="step() === item.id" (click)="goToStep($any(item.id))">
+          {{ item.label }}
+        </button>
+      }
+    </nav>
+
+    <section class="activity-card">
+      @if (sampleAudioLoading()) {
+        <p class="sample-audio-state" aria-live="polite">Đang chuẩn bị giọng đọc mẫu...</p>
+      }
+      @if (generatedAudioUrl(); as sampleUrl) {
+        <audio data-testid="generated-sample-audio" class="generated-sample-audio" [src]="sampleUrl" controls autoplay></audio>
+      }
+      @if (sampleAudioError()) {
+        <p class="feedback" role="alert">{{ sampleAudioError() }}</p>
+      }
+      @if (step() === 'dialogue') {
+        <div class="activity-heading">
+          <p>Hoạt động 1</p>
+          <h1>{{ currentLesson.title }}</h1>
+          <p>{{ currentLesson.goal }}</p>
+        </div>
+        <div class="support-toggles">
+          <button data-testid="toggle-pinyin" type="button" [attr.aria-pressed]="showPinyin()" (click)="togglePinyin()">
+            Pinyin {{ showPinyin() ? 'Bật' : 'Tắt' }}
+          </button>
+          <button data-testid="toggle-translation" type="button" [attr.aria-pressed]="showTranslation()" (click)="toggleTranslation()">
+            Bản dịch {{ showTranslation() ? 'Bật' : 'Tắt' }}
+          </button>
+        </div>
+        <div class="dialogue">
+          @for (line of currentLesson.dialogue; track line.id) {
+            <article>
+              <span class="speaker">{{ line.speaker }}</span>
+              <div>
+                <strong lang="zh-Hans">{{ line.hanzi }}</strong>
+                @if (showPinyin()) { <p>{{ line.pinyin }}</p> }
+                @if (showTranslation()) { <p>{{ line.translation_vi }}</p> }
+              </div>
+              <button [attr.data-testid]="'play-line-' + line.id" type="button" (click)="playLine(line.audio_text)" aria-label="Nghe câu">▶</button>
+            </article>
+          }
+        </div>
+        <section class="lesson-words">
+          <h2>Từ trong bài</h2>
+          @for (word of currentLesson.vocabulary; track word.id) {
+            <button type="button" [class.saved]="notebook.has(word.id)" (click)="toggleWord(word)">
+              <strong>{{ word.hanzi }}</strong>
+              <span>{{ word.pinyin }} · {{ word.meaning_vi }}</span>
+              <small>{{ notebook.has(word.id) ? 'Đã lưu' : '+ Lưu từ' }}</small>
+            </button>
+          }
+        </section>
+        <button class="button primary" type="button" (click)="goToStep('listening')">Tiếp tục nghe hiểu</button>
+      }
+
+      @if (step() === 'listening') {
+        <div class="activity-heading">
+          <p>Hoạt động 2</p>
+          <h1>Nghe và chọn đáp án</h1>
+        </div>
+        <button data-testid="lesson-play-listening" class="audio-hero" type="button" (click)="playLine(currentLesson.listening.audio_text)">▶ Nghe câu</button>
+        <h2>{{ currentLesson.listening.prompt_vi }}</h2>
+        <div class="choice-list">
+          @for (option of currentLesson.listening.options; track option.id) {
+            <button type="button" [class.selected]="selectedListening() === option.id" [disabled]="listeningChecked()" (click)="selectListening(option.id)">{{ option.text }}</button>
+          }
+        </div>
+        @if (!listeningChecked()) {
+          <button data-testid="submit-lesson-listening" class="button primary" type="button" [disabled]="!selectedListening()" (click)="submitListening()">Kiểm tra</button>
+        } @else {
+          <div class="feedback">
+            <strong>{{ selectedListening() === currentLesson.listening.correct_option_id ? 'Chính xác' : 'Đã thêm vào ôn câu sai' }}</strong>
+            <p>{{ currentLesson.listening.explanation_vi }}</p>
+            <p>{{ currentLesson.listening.transcript_zh }} · {{ currentLesson.listening.pinyin }}</p>
+          </div>
+          <button class="button primary" type="button" (click)="goToStep('sentence-order')">Tiếp tục xếp câu</button>
+        }
+      }
+
+      @if (step() === 'sentence-order') {
+        <div class="activity-heading">
+          <p>Hoạt động 3</p>
+          <h1>{{ currentLesson.sentence_order.prompt_vi }}</h1>
+        </div>
+        <div class="sentence-builder" aria-label="Câu đã sắp xếp">
+          @for (token of arrangedTokens(); track $index) { <span>{{ token }}</span> }
+          @if (arrangedTokens().length === 0) { <small>Chọn các từ theo thứ tự đúng</small> }
+        </div>
+        <div class="token-bank">
+          @for (token of availableTokens(); track $index) {
+            <button type="button" [disabled]="orderChecked()" (click)="chooseToken(token)">{{ token }}</button>
+          }
+        </div>
+        <div class="builder-actions">
+          <button data-testid="undo-token" class="button secondary" type="button" [disabled]="arrangedTokens().length === 0 || orderChecked()" (click)="undoToken()">Hoàn tác</button>
+          <button data-testid="submit-order" class="button primary" type="button" [disabled]="arrangedTokens().length !== currentLesson.sentence_order.tokens.length || orderChecked()" (click)="submitOrder()">Kiểm tra câu</button>
+        </div>
+        @if (orderChecked()) {
+          <div class="feedback">
+            <strong>{{ arrangedTokens().join('|') === currentLesson.sentence_order.correct_tokens.join('|') ? 'Chính xác' : 'Câu này sẽ xuất hiện trong ôn sai' }}</strong>
+            <p>{{ currentLesson.sentence_order.explanation_vi }}</p>
+          </div>
+          <button class="button primary" type="button" (click)="goToStep('pronunciation')">Tiếp tục phát âm</button>
+        }
+      }
+
+      @if (step() === 'pronunciation') {
+        <div class="activity-heading">
+          <p>Hoạt động 4</p>
+          <h1>Nghe, nói và nghe lại</h1>
+        </div>
+        <div class="pronunciation-target">
+          <strong lang="zh-Hans">{{ currentLesson.pronunciation_text }}</strong>
+          <button class="button secondary" type="button" (click)="playLine(currentLesson.pronunciation_text)">▶ Nghe mẫu</button>
+        </div>
+        @if (!recording()) {
+          <button data-testid="lesson-start-recording" class="button primary" type="button" (click)="startRecording()">Bắt đầu thu âm</button>
+        } @else {
+          <button data-testid="lesson-stop-recording" class="button primary" type="button" (click)="stopRecording()">Dừng thu</button>
+          <p class="recording-live" aria-live="polite"><span aria-hidden="true">●</span> Đang thu · {{ recordingSeconds() }} giây</p>
+        }
+        @if (recordingUrl(); as url) {
+          <audio data-testid="lesson-recording-playback" [src]="url" controls></audio>
+          <button data-testid="analyze-pronunciation" class="button secondary" type="button"
+            [disabled]="analyzingPronunciation() || !recordingReadyForAnalysis()" (click)="analyzePronunciation()">
+            {{ analyzingPronunciation() ? 'AI đang phân tích...' : 'Phân tích bằng AI' }}
+          </button>
+          <small class="ai-disclaimer">Bản thu chỉ được gửi để phân tích, không lưu lại. Kết quả AI hỗ trợ luyện tập, không phải điểm thi HSKK.</small>
+        }
+        @if (recordingIssue()) {
+          <p class="feedback" role="alert">{{ recordingIssue() }}</p>
+        }
+        @if (pronunciationResult(); as result) {
+          <div class="feedback pronunciation-feedback" data-testid="pronunciation-result" aria-live="polite">
+            <strong>{{ result.score }}/100 · {{ result.verdict === 'correct' ? 'Đã nhận diện đúng nội dung' : 'Cần luyện thêm' }}</strong>
+            <p>AI nghe được: <span lang="zh-Hans">{{ result.transcript }}</span></p>
+            <p>{{ result.feedback_vi }}</p>
+            @for (focus of result.focus_vi; track focus) { <small>{{ focus }}</small> }
+            @if (result.syllables.length) {
+              <div class="syllable-grid" aria-label="Phản hồi từng âm tiết">
+                @for (syllable of result.syllables; track $index) {
+                  <article
+                    data-testid="syllable-feedback"
+                    [class.review]="syllable.status === 'review'"
+                    [class.uncertain]="syllable.status === 'uncertain'"
+                  >
+                    <strong>{{ syllable.target }} · thanh {{ syllable.tone || 'nhẹ' }}</strong>
+                    <span>
+                      {{ syllable.status === 'good'
+                        ? 'Ổn'
+                        : syllable.status === 'review' ? 'Cần luyện' : 'Chưa đủ rõ' }}
+                    </span>
+                    <p>{{ syllable.tip_vi }}</p>
+                  </article>
+                }
+              </div>
+            }
+            <small class="result-disclaimer">{{ result.disclaimer_vi }}</small>
+          </div>
+        }
+        @if (pronunciationError()) {
+          <p class="feedback" role="alert">{{ pronunciationError() }}</p>
+        }
+        @if (microphoneUnavailable()) {
+          <p class="feedback">Microphone không khả dụng. Bạn vẫn có thể nghe mẫu và đọc theo.</p>
+        }
+        <button data-testid="complete-multi-lesson" class="button primary complete-button" type="button" (click)="completeLesson()">Hoàn thành bài</button>
+      }
+    </section>
+    }
+  } @else {
+    <section class="activity-card state-card"><h1>Bài học chưa có nội dung.</h1></section>
+  }
+</main>

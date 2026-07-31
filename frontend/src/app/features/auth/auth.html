@@ -1,0 +1,97 @@
+<main class="auth-page">
+  <section class="auth-story" aria-labelledby="auth-benefit-title">
+    <a class="auth-brand" href="/" aria-label="HSK Learning - Trang chủ">
+      <span>汉</span> HSK Learning
+    </a>
+    <div>
+      <p class="eyebrow">Không gian học của riêng bạn</p>
+      <h1 id="auth-benefit-title">Học tiếp đúng nơi bạn đã dừng.</h1>
+      <p class="intro">Tiến độ, sổ từ và lịch ôn được giữ riêng cho bạn.</p>
+    </div>
+    <ol class="benefit-list">
+      <li><strong>01</strong><span>Không trộn tiến độ khi dùng chung thiết bị</span></li>
+      <li><strong>02</strong><span>Ôn đúng từ đến hạn và những câu từng làm sai</span></li>
+      <li><strong>03</strong><span>Giữ chuỗi ngày học sau khi đăng nhập lại</span></li>
+    </ol>
+  </section>
+
+  <section class="auth-panel">
+    <div class="mode-switch" aria-label="Chọn đăng nhập hoặc đăng ký">
+      <button type="button" [class.active]="mode() === 'login'" (click)="setMode('login')">Đăng nhập</button>
+      <button type="button" [class.active]="mode() === 'register'" (click)="setMode('register')">Đăng ký</button>
+    </div>
+
+    <header>
+      <p class="eyebrow">{{ isRegister() ? 'Bắt đầu miễn phí' : 'Tiếp tục hành trình' }}</p>
+      <h2>{{ isRegister() ? 'Tạo không gian học của bạn' : 'Chào mừng bạn quay lại' }}</h2>
+      <p>{{ isRegister() ? 'Chỉ mất chưa đầy một phút.' : 'Đăng nhập để xem bài nên học tiếp theo.' }}</p>
+    </header>
+
+    <form (submit)="$event.preventDefault(); submit()" novalidate>
+      @if (isRegister()) {
+        <label>
+          Tên của bạn
+          <input
+            autocomplete="name"
+            [value]="displayName()"
+            (input)="updateDisplayName($any($event.target).value)"
+            placeholder="Ví dụ: Mai Anh"
+          />
+          @if (submitted() && displayName().trim().length < 2) {
+            <small class="field-error">Vui lòng nhập tên có ít nhất 2 ký tự.</small>
+          }
+        </label>
+      }
+
+      <label>
+        Email
+        <input
+          type="email"
+          autocomplete="email"
+          [value]="email()"
+          (input)="updateEmail($any($event.target).value)"
+          placeholder="ban@example.com"
+        />
+        @if (submitted() && emailInvalid()) {
+          <small class="field-error">Email chưa đúng định dạng.</small>
+        }
+      </label>
+
+      <label>
+        Mật khẩu
+        <span class="password-field">
+          <input
+            [type]="passwordVisible() ? 'text' : 'password'"
+            [autocomplete]="isRegister() ? 'new-password' : 'current-password'"
+            [value]="password()"
+            (input)="updatePassword($any($event.target).value)"
+            placeholder="Tối thiểu 8 ký tự"
+          />
+          <button type="button" (click)="passwordVisible.set(!passwordVisible())">
+            {{ passwordVisible() ? 'Ẩn' : 'Hiện' }}
+          </button>
+        </span>
+        @if (submitted() && password().length < 8) {
+          <small class="field-error">Mật khẩu cần ít nhất 8 ký tự.</small>
+        }
+      </label>
+
+      @if (apiError()) {
+        <p class="form-error" role="alert">{{ apiError() }}</p>
+      }
+
+      <button data-testid="submit-auth" class="submit-auth" type="submit" [disabled]="submitting()">
+        {{ submitting()
+          ? (isRegister() ? 'Đang tạo tài khoản…' : 'Đang đăng nhập…')
+          : (isRegister() ? 'Tạo tài khoản và bắt đầu' : 'Đăng nhập để học tiếp') }}
+      </button>
+    </form>
+
+    <p class="mode-prompt">
+      {{ isRegister() ? 'Bạn đã có tài khoản?' : 'Bạn chưa có tài khoản?' }}
+      <button type="button" (click)="setMode(isRegister() ? 'login' : 'register')">
+        {{ isRegister() ? 'Đăng nhập' : 'Đăng ký miễn phí' }}
+      </button>
+    </p>
+  </section>
+</main>

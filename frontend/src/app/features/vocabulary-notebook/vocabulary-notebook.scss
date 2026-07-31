@@ -1,0 +1,17 @@
+:host { display: block; }
+.notebook-page { padding: clamp(2rem, 6vw, 5rem) 0 6rem; }
+header > a { color: var(--jade); font-weight: 750; text-decoration: none; }
+header > p { margin-top: 3rem; color: var(--jade); font-weight: 750; }
+header h1 { margin: .5rem 0; font-size: clamp(3rem, 8vw, 6rem); letter-spacing: -.055em; }
+header > span { color: var(--ink-muted); }
+.notebook-actions { display: flex; justify-content: flex-end; margin: 2rem 0 1rem; }
+.word-list { display: grid; gap: .6rem; }
+.word-list article { display: grid; grid-template-columns: 90px 1fr auto auto; gap: 1rem; align-items: center; padding: 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-raised); }
+.word-list article > strong { font-size: 2rem; }
+.word-list span, .word-list small { color: var(--ink-muted); }
+.word-list p { margin: .3rem 0 0; }
+.word-list button { border: 0; background: transparent; color: #a33d35; cursor: pointer; }
+.empty { margin-top: 3rem; padding: 3rem; border: 1px solid var(--line); border-radius: 20px; background: var(--paper-raised); }
+.empty h2 { font-size: 2.5rem; }
+.empty p { color: var(--ink-muted); }
+@media (max-width: 640px) { .word-list article { grid-template-columns: auto 1fr auto; } .word-list small { grid-column: 2; } }

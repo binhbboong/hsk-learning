@@ -1,0 +1,151 @@
+:host {
+  display: block;
+}
+
+.study-page {
+  width: min(820px, 100%);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 5vw, 4rem) 0 5rem;
+}
+
+.study-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.study-header a {
+  color: var(--jade);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.study-header div {
+  display: flex;
+  gap: 1rem;
+  color: var(--ink-muted);
+}
+
+.study-header strong {
+  color: var(--ink);
+}
+
+.flash-card {
+  display: grid;
+  min-height: 560px;
+  padding: clamp(1.5rem, 6vw, 4.5rem);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--paper-raised);
+  box-shadow: 0 28px 80px rgb(18 45 36 / 10%);
+}
+
+.card-prompt {
+  align-self: center;
+  text-align: center;
+}
+
+.card-prompt > p {
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.card-prompt h1 {
+  margin: 1.5rem 0;
+  font-family: 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  font-size: clamp(7rem, 25vw, 12rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.reveal-button {
+  align-self: end;
+  justify-self: center;
+  min-width: 10rem;
+}
+
+.answer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  align-self: end;
+}
+
+.answer > div {
+  padding-top: 1rem;
+  border-top: 2px solid var(--jade);
+}
+
+.answer span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+
+.answer strong {
+  font-size: 1.2rem;
+}
+
+blockquote {
+  grid-column: 1 / -1;
+  margin: 1rem 0 0;
+  padding: 1.3rem;
+  border-left: 3px solid var(--jade);
+  background: var(--jade-soft);
+}
+
+blockquote p {
+  margin: 0 0 0.5rem;
+  font-size: 1.4rem;
+}
+
+blockquote footer {
+  color: var(--ink-muted);
+}
+
+.rating-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-self: end;
+  margin-top: 2rem;
+}
+
+.state-card {
+  align-content: center;
+  justify-items: start;
+}
+
+.state-card h1 {
+  margin-top: 0;
+}
+
+.skeleton {
+  width: 100%;
+  height: 1rem;
+  border-radius: 8px;
+  background: var(--skeleton);
+}
+
+.skeleton.hanzi {
+  width: 10rem;
+  height: 10rem;
+  align-self: center;
+  justify-self: center;
+}
+
+@media (max-width: 620px) {
+  .flash-card {
+    min-height: 520px;
+  }
+
+  .answer {
+    grid-template-columns: 1fr;
+  }
+
+  blockquote {
+    grid-column: 1;
+  }
+}

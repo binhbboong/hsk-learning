@@ -1,0 +1,67 @@
+<main class="practice-page">
+  <header class="practice-header">
+    <a routerLink="/skills">← Thoát</a>
+    <strong>Ngữ pháp HSK 1</strong>
+  </header>
+
+  @if (loading()) {
+    <section class="lesson-panel state-panel" aria-live="polite">Đang tải bài ngữ pháp...</section>
+  } @else if (error()) {
+    <section class="lesson-panel state-panel" role="alert">
+      <h1>Không thể tải bài ngữ pháp.</h1>
+      <a class="button secondary" routerLink="/skills">Về danh mục</a>
+    </section>
+  } @else if (lesson(); as currentLesson) {
+    <section class="lesson-panel">
+      <div class="lesson-intro">
+        <p>Chủ điểm hôm nay</p>
+        <h1>{{ currentLesson.pattern }}</h1>
+        <p>{{ currentLesson.explanation_vi }}</p>
+      </div>
+
+      <div class="examples" aria-label="Ví dụ">
+        @for (example of currentLesson.examples; track example.hanzi) {
+          <article>
+            <strong lang="zh-Hans">{{ example.hanzi }}</strong>
+            <span>{{ example.pinyin }}</span>
+            <span>{{ example.meaning_vi }}</span>
+          </article>
+        }
+      </div>
+
+      @if (currentLesson.questions[index()]; as question) {
+        <section class="question-panel">
+          <p class="progress">{{ index() + 1 }} / {{ currentLesson.questions.length }}</p>
+          <h2>{{ question.prompt_vi }}</h2>
+          <div class="options">
+            @for (option of question.options; track option.id) {
+              <button
+                type="button"
+                [attr.data-testid]="'option-' + option.id"
+                [class.selected]="selected() === option.id"
+                [disabled]="checked()"
+                (click)="select(option.id)"
+              >{{ option.text }}</button>
+            }
+          </div>
+
+          @if (!checked()) {
+            <button data-testid="check-answer" class="button primary" type="button" [disabled]="!selected()" (click)="check()">
+              Kiểm tra
+            </button>
+          } @else {
+            <div class="feedback" aria-live="polite">
+              <strong>{{ selected() === question.correct_option_id ? 'Chính xác' : 'Chưa đúng' }}</strong>
+              <p>{{ question.explanation_vi }}</p>
+              <button data-testid="next-question" class="button primary" type="button" (click)="next()">
+                {{ index() === currentLesson.questions.length - 1 ? 'Xem kết quả' : 'Câu tiếp theo' }}
+              </button>
+            </div>
+          }
+        </section>
+      }
+    </section>
+  } @else {
+    <section class="lesson-panel state-panel"><h1>Chưa có câu hỏi ngữ pháp.</h1></section>
+  }
+</main>

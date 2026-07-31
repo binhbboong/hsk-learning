@@ -1,0 +1,61 @@
+<main class="checkpoint-shell">
+  <a routerLink="/learn" class="back-link">← Về lộ trình</a>
+
+  @if (!checkpoint()) {
+    <section class="state-card"><p>Đang tải bài kiểm tra…</p></section>
+  } @else if (!unlocked() && !finished()) {
+    <section class="state-card locked">
+      <span class="eyebrow">{{ checkpoint()!.title }}</span>
+      <h1>Chưa mở khóa</h1>
+      <p>Hoàn thành đủ 5 bài trong lộ trình để làm bài kiểm tra tổng hợp.</p>
+      <a routerLink="/learn" class="primary-link">Tiếp tục học</a>
+    </section>
+  } @else if (finished()) {
+    <section class="state-card result">
+      <span class="eyebrow">Đã hoàn thành</span>
+      <h1>{{ score() }} / {{ checkpoint()!.questions.length }}</h1>
+      <p>Câu trả lời sai đã được lưu để bạn ôn lại có chủ đích.</p>
+      <div class="result-actions">
+        <a routerLink="/learn/review" [queryParams]="{ source: 'mistakes' }" class="primary-link">Ôn câu làm sai</a>
+        <a routerLink="/learn" class="secondary-link">Về lộ trình</a>
+      </div>
+    </section>
+  } @else {
+    <section class="test-card">
+      <header>
+        <span class="eyebrow">{{ checkpoint()!.title }}</span>
+        <span>Câu {{ index() + 1 }} / {{ checkpoint()!.questions.length }}</span>
+      </header>
+      <div class="progress"><span [style.width.%]="((index() + 1) / checkpoint()!.questions.length) * 100"></span></div>
+      <h1>{{ currentQuestion()!.prompt_vi }}</h1>
+
+      @if (currentQuestion()!.audio_text) {
+        <button type="button" class="audio-button" (click)="play()">▶ Nghe câu</button>
+      }
+
+      @if (currentQuestion()!.kind === 'sentence-order') {
+        <div class="sentence-answer">
+          @for (token of arrangedTokens(); track $index) { <span>{{ token }}</span> }
+          @if (!arrangedTokens().length) { <small>Chạm vào các từ theo đúng thứ tự</small> }
+        </div>
+        <div class="token-list">
+          @for (token of currentQuestion()!.tokens; track $index) {
+            <button type="button" (click)="chooseToken(token)">{{ token }}</button>
+          }
+        </div>
+        <button type="button" class="text-button" (click)="undoToken()">Hoàn tác từ cuối</button>
+      } @else {
+        <div class="option-list">
+          @for (option of currentQuestion()!.options; track option.id) {
+            <button
+              type="button"
+              [class.selected]="selectedOption() === option.id"
+              (click)="selectOption(option.id)"
+            >{{ option.text }}</button>
+          }
+        </div>
+      }
+      <button type="button" class="submit-button" (click)="submitAnswer()">Xác nhận đáp án</button>
+    </section>
+  }
+</main>

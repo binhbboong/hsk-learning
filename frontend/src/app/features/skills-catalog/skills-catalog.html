@@ -1,0 +1,48 @@
+<main class="catalog-page">
+  <a class="back-link" routerLink="/">← Trang chủ</a>
+
+  <header class="catalog-header">
+    <p>HSK 1 · Phiên học 5-10 phút</p>
+    <h1>Hôm nay bạn muốn luyện gì?</h1>
+    <p>Chọn một kỹ năng. Mỗi bài đều giải thích bằng tiếng Việt và có kết quả ngay.</p>
+  </header>
+
+  @if (loading()) {
+    <section class="skills-grid" aria-live="polite">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <div class="skill-card skeleton-card"><span></span><span></span></div>
+      }
+    </section>
+  } @else if (error()) {
+    <section class="state-panel" role="alert">
+      <h2>Không thể tải danh mục bài học.</h2>
+      <p>API có thể đang tạm ngắt. Hãy thử lại sau một chút.</p>
+      <button data-testid="retry-catalog" class="button secondary" type="button" (click)="retry()">
+        Thử lại
+      </button>
+    </section>
+  } @else if (catalog(); as currentCatalog) {
+    <section class="skills-grid" aria-label="Các kỹ năng HSK 1">
+      @for (skill of currentCatalog.items; track skill.kind; let index = $index) {
+        <a
+          class="skill-card"
+          [attr.data-testid]="'skill-' + skill.kind"
+          [routerLink]="skill.route"
+        >
+          <span class="skill-index">0{{ index + 1 }}</span>
+          <div>
+            <p>{{ skill.estimated_minutes }} phút</p>
+            <h2>{{ skill.title }}</h2>
+            <p>{{ skill.goal }}</p>
+          </div>
+          <span class="start-label">Bắt đầu <span aria-hidden="true">→</span></span>
+        </a>
+      }
+    </section>
+  } @else {
+    <section class="state-panel">
+      <h2>Chưa có bài cho cấp này.</h2>
+      <p>Hãy quay lại bài từ vựng HSK 1 trong lúc nội dung được chuẩn bị.</p>
+    </section>
+  }
+</main>

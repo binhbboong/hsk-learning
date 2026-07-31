@@ -1,0 +1,38 @@
+@if (showHeader()) {
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="HSK Learning - Trang chủ">
+      <span class="brand-mark">汉</span>
+      <span>HSK Learning</span>
+    </a>
+    @if (auth.user(); as user) {
+      <div class="account">
+        <button
+          data-testid="account-menu"
+          type="button"
+          class="account-trigger"
+          [attr.aria-expanded]="accountOpen()"
+          (click)="accountOpen.set(!accountOpen())"
+        >
+          <span>{{ user.display_name.slice(0, 1).toUpperCase() }}</span>
+          <strong>{{ user.display_name }}</strong>
+        </button>
+        @if (accountOpen()) {
+          <div class="account-popover">
+            <strong>{{ user.display_name }}</strong>
+            <small>{{ user.email }}</small>
+            @if (user.is_admin) {
+              <a data-testid="content-admin-link" href="/admin/content">Quản trị nội dung AI</a>
+            }
+            <button data-testid="logout" type="button" (click)="logout()">Đăng xuất</button>
+          </div>
+        }
+      </div>
+    } @else {
+      <a class="login-link" href="/auth">Đăng nhập</a>
+    }
+  </header>
+}
+
+<div class="page-shell">
+  <router-outlet />
+</div>

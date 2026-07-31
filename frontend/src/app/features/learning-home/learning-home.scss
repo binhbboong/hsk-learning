@@ -1,0 +1,57 @@
+:host { display: block; }
+.learning-home { padding: clamp(2rem, 6vw, 5rem) 0 6rem; }
+.hero { display: grid; grid-template-columns: 1.5fr auto; gap: 2rem; align-items: end; margin-bottom: 3rem; }
+.hero p, .section-heading p, .next-card p { color: var(--jade); font-weight: 750; }
+.hero h1 { max-width: 820px; margin: .5rem 0 0; font-size: clamp(2.8rem, 7vw, 5.5rem); letter-spacing: -.055em; line-height: 1; }
+.streak { display: grid; min-width: 180px; padding: 1.25rem; border-top: 2px solid var(--jade); }
+.streak span { color: #d76f45; font-size: 1.6rem; }
+.streak small { margin-top: .35rem; color: var(--ink-muted); }
+.next-card { display: flex; justify-content: space-between; gap: 2rem; align-items: end; padding: clamp(1.5rem, 4vw, 3rem); border: 1px solid var(--line); border-radius: 24px; background: var(--paper-raised); }
+.next-card h2 { margin: .5rem 0 0; font-size: clamp(2rem, 5vw, 3.8rem); }
+.metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0 4rem; }
+.insights { margin: 4rem 0 1rem; }
+.insight-grid { display: grid; grid-template-columns: 1.35fr .8fr .9fr; gap: 1rem; }
+.insight-grid article { display: grid; align-content: start; gap: .6rem; min-height: 125px; padding: 1.25rem; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-raised); }
+.insight-grid article > span, .insight-grid small { color: var(--ink-muted); }
+.insight-grid .retention, .insight-grid .weakness strong { font-size: 1.8rem; }
+.activity-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: .35rem; margin-top: .4rem; }
+.activity-week div { display: grid; justify-items: center; gap: .25rem; padding: .6rem .2rem; border-radius: 10px; background: var(--jade-soft); color: var(--ink-muted); }
+.activity-week div.active { background: var(--jade); color: white; }
+.insight-action { display: grid; grid-template-columns: 1fr auto; gap: .3rem 1rem; align-items: center; margin-top: 1rem; padding: 1.25rem; border-radius: 18px; background: var(--jade-soft); color: var(--ink); text-decoration: none; }
+.insight-action > span { color: var(--jade); font-weight: 800; }
+.insight-action > strong, .insight-action > small { grid-column: 1; }
+.insight-action > b { grid-column: 2; grid-row: 1 / 4; color: var(--jade); }
+.insight-state { display: grid; gap: .4rem; padding: 1.25rem; border-left: 3px solid var(--jade); background: var(--jade-soft); }
+.metrics article { display: grid; padding: 1.25rem; border-top: 2px solid var(--jade); background: var(--jade-soft); }
+.metrics span, .metrics small { color: var(--ink-muted); }
+.metrics strong { margin: 1rem 0 .25rem; font-size: 1.7rem; }
+.section-heading h2 { margin: .4rem 0 1.5rem; font-size: 2.5rem; }
+.learning-days { display: grid; gap: 1.25rem; }
+.learning-day { padding: 1.25rem; border: 1px solid var(--line); border-radius: 20px; background: var(--paper-raised); }
+.learning-day > header, .learning-day > footer { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.learning-day > header p { margin: 0 0 .3rem; color: var(--jade); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.learning-day > header h3 { margin: 0; }
+.learning-day > header > strong { white-space: nowrap; }
+.learning-day > footer { padding-top: 1rem; border-top: 1px solid var(--line); }
+.learning-day > footer a, .learning-day > footer strong { color: var(--jade); font-weight: 800; }
+.learning-day > footer small { color: var(--ink-muted); }
+.learning-day.complete { background: color-mix(in srgb, var(--jade-soft) 42%, var(--paper-raised)); }
+.day-progress { height: 7px; margin: 1rem 0; overflow: hidden; border-radius: 999px; background: var(--line); }
+.day-progress span { display: block; height: 100%; border-radius: inherit; background: var(--jade); }
+.lesson-path ol { display: grid; gap: .6rem; padding: 0; list-style: none; }
+.lesson-path li { display: grid; grid-template-columns: auto 1fr auto; gap: 1.25rem; align-items: center; padding: 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-raised); }
+.lesson-path li > span { color: var(--jade); font-weight: 800; }
+.lesson-path h4 { margin: 0 0 .3rem; font-size: 1rem; }
+.lesson-path p { margin: 0; color: var(--ink-muted); }
+.lesson-path a { color: var(--jade); font-weight: 750; }
+.lesson-path li.complete { opacity: .75; }
+.tool-links { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 1rem; margin-top: 3rem; }
+.tool-links a { display: grid; gap: .5rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); text-decoration: none; }
+.tool-links span { color: var(--ink-muted); }
+.tool-links small { color: var(--jade); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.tool-links .flipcard-link { position: relative; overflow: hidden; background: var(--jade-soft); border-color: color-mix(in srgb, var(--jade) 38%, var(--line)); }
+.tool-links .flipcard-link::after { content: '字'; position: absolute; right: 1rem; bottom: -.75rem; color: color-mix(in srgb, var(--jade) 13%, transparent); font-family: 'Microsoft YaHei', sans-serif; font-size: 5.5rem; line-height: 1; pointer-events: none; }
+.tool-links .flipcard-link strong, .tool-links .flipcard-link span, .tool-links .flipcard-link small { position: relative; z-index: 1; }
+.state-card { min-height: 220px; align-content: center; }
+@media (max-width: 900px) { .tool-links { grid-template-columns: 1fr 1fr; } .tool-links .flipcard-link { grid-column: 1 / -1; } .insight-grid { grid-template-columns: 1fr 1fr; } .insight-grid article:first-child { grid-column: 1 / -1; } }
+@media (max-width: 720px) { .hero, .metrics, .tool-links, .insight-grid { grid-template-columns: 1fr; } .insight-grid article:first-child { grid-column: auto; } .tool-links .flipcard-link { grid-column: auto; } .next-card { display: grid; } .next-card .button { width: 100%; } .learning-day > header, .learning-day > footer { align-items: flex-start; flex-direction: column; } .lesson-path li { grid-template-columns: auto 1fr; } .lesson-path li > a { grid-column: 2; } }

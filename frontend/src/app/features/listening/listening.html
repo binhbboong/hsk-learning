@@ -1,0 +1,64 @@
+<main class="listening-page">
+  <header class="practice-header">
+    <a routerLink="/skills">← Thoát</a>
+    <strong>Nghe hiểu HSK 1</strong>
+  </header>
+
+  @if (loading()) {
+    <section class="listening-panel state-panel" aria-live="polite">Đang chuẩn bị đoạn nghe...</section>
+  } @else if (error()) {
+    <section class="listening-panel state-panel" role="alert">
+      <h1>Không thể tải bài nghe.</h1>
+      <a class="button secondary" routerLink="/skills">Về danh mục</a>
+    </section>
+  } @else if (lesson(); as currentLesson) {
+    <section class="listening-panel">
+      <div class="prompt">
+        <p>Nghe trước, chưa nhìn chữ</p>
+        <h1>{{ currentLesson.title }}</h1>
+        <p>{{ currentLesson.goal }}</p>
+      </div>
+
+      <div class="audio-actions">
+        <button data-testid="play-normal" class="play-button" type="button" (click)="play(0.86)">
+          <span aria-hidden="true">▶</span> Tốc độ thường
+        </button>
+        <button data-testid="play-slow" class="play-button" type="button" (click)="play(0.62)">
+          <span aria-hidden="true">◐</span> Nghe chậm
+        </button>
+      </div>
+
+      @if (audioUnavailable()) {
+        <p class="audio-warning" role="status">Thiết bị không phát được audio. Bạn vẫn có thể học bằng transcript.</p>
+      }
+
+      @if (transcriptVisible()) {
+        <article class="transcript" aria-live="polite">
+          <strong lang="zh-Hans">{{ currentLesson.utterance_zh }}</strong>
+          <span>{{ currentLesson.pinyin }}</span>
+          <span>{{ currentLesson.meaning_vi }}</span>
+        </article>
+      } @else {
+        <button data-testid="show-transcript" class="text-action" type="button" (click)="showTranscript()">
+          Hiện transcript
+        </button>
+      }
+
+      <section class="question">
+        <h2>{{ currentLesson.question_vi }}</h2>
+        <div class="options">
+          @for (option of currentLesson.options; track option.id) {
+            <button type="button" [class.selected]="selected() === option.id" (click)="select(option.id)">
+              {{ option.text }}
+            </button>
+          }
+        </div>
+        <button data-testid="submit-listening" class="button primary" type="button" [disabled]="!selected()" (click)="submit()">
+          Gửi đáp án
+        </button>
+      </section>
+    </section>
+  } @else {
+    <section class="listening-panel state-panel"><h1>Chưa có đoạn nghe.</h1></section>
+  }
+</main>

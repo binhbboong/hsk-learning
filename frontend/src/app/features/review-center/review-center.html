@@ -1,0 +1,137 @@
+<main class="review-page">
+  <header>
+    <a routerLink="/learn">← Lộ trình</a>
+    <p>Ôn đúng lúc, sửa đúng chỗ</p>
+    <h1>Trung tâm ôn tập</h1>
+  </header>
+
+  <nav class="review-tabs" aria-label="Loại ôn tập">
+    <button type="button" [class.active]="mode() === 'srs'" (click)="setMode('srs')">
+      Ôn ngắt quãng <span>{{ srs.dueCards().length }}</span>
+    </button>
+    <button type="button" [class.active]="mode() === 'mistakes'" (click)="setMode('mistakes')">
+      Câu làm sai <span>{{ mistakes.items().length }}</span>
+    </button>
+    <button type="button" [class.active]="mode() === 'notebook'" (click)="setMode('notebook')">
+      Sổ từ <span>{{ notebook.words().length }}</span>
+    </button>
+  </nav>
+
+  @if (mode() === 'mistakes') {
+    @if (currentMistake(); as mistake) {
+      <section class="review-card mistake-card">
+        <p>{{ mistake.kind === 'listening' ? 'Câu nghe đã làm sai' : 'Câu cần sắp xếp lại' }}</p>
+        <h2>{{ mistake.prompt }}</h2>
+        @if (isSentenceOrderMistake()) {
+          <div class="sentence-builder">
+            <span>Câu trả lời của bạn</span>
+            <div class="selected-tokens" aria-live="polite">
+              @if (arrangedMistakeTokens().length === 0) {
+                <small>Chọn từng từ bên dưới để tạo câu</small>
+              }
+              @for (token of arrangedMistakeTokens(); track $index) {
+                <span lang="zh-Hans">{{ token }}</span>
+              }
+            </div>
+          </div>
+          <div class="token-bank" aria-label="Các từ gợi ý">
+            @for (token of availableMistakeTokens(); track $index) {
+              <button
+                data-testid="mistake-token"
+                type="button"
+                (click)="chooseMistakeToken(token)"
+              >{{ token }}</button>
+            }
+          </div>
+          <div class="mistake-actions">
+            <button
+              data-testid="undo-mistake-token"
+              class="button secondary"
+              type="button"
+              [disabled]="arrangedMistakeTokens().length === 0"
+              (click)="undoMistakeToken()"
+            >Hoàn tác</button>
+            <button
+              data-testid="submit-mistake-review"
+              class="button primary"
+              type="button"
+              [disabled]="availableMistakeTokens().length > 0"
+              (click)="answerArrangedMistake()"
+            >Kiểm tra</button>
+          </div>
+        } @else {
+          <label>
+            Câu trả lời của bạn
+            <input
+              data-testid="mistake-answer"
+              [value]="mistakeAnswer()"
+              (input)="updateMistakeAnswer($any($event.target).value)"
+            />
+          </label>
+          <button data-testid="submit-mistake-review" class="button primary" type="button" (click)="answerMistake()">Kiểm tra</button>
+        }
+        @if (mistakeFeedback()) { <div class="feedback" aria-live="polite">{{ mistakeFeedback() }}</div> }
+      </section>
+    } @else {
+      <section class="review-card empty">
+        <span aria-hidden="true">✓</span>
+        <h2>Không còn câu làm sai.</h2>
+        <p>Khi trả lời sai ở bài học hoặc checkpoint, câu đó sẽ xuất hiện tại đây.</p>
+        <a class="button primary" routerLink="/learn">Tiếp tục học</a>
+      </section>
+    }
+  } @else {
+    @if (currentCard(); as card) {
+      <section class="review-card flashcard">
+        <p>{{ mode() === 'notebook' ? 'Từ trong sổ cá nhân' : 'Đến hạn ôn hôm nay' }}</p>
+        <h2 lang="zh-Hans">{{ card.hanzi }}</h2>
+        <p class="quiz-pinyin">{{ card.pinyin }}</p>
+        <div class="answer-choices" aria-label="Chọn nghĩa đúng">
+          @for (option of answerOptions(); track option; let index = $index) {
+            <button type="button"
+              [attr.data-testid]="'review-option-' + index"
+              [class.selected]="selectedAnswer() === option"
+              [class.correct]="revealed() && option === card.meaningVi"
+              [class.incorrect]="revealed() && selectedAnswer() === option && option !== card.meaningVi"
+              [disabled]="revealed()"
+              (click)="chooseAnswer(option)">
+              {{ ['A', 'B', 'C', 'D'][index] }}. {{ option }}
+            </button>
+          }
+        </div>
+        @if (revealed()) {
+          <div class="answer" aria-live="polite">
+            <strong>{{ answerCorrect() ? 'Chính xác!' : 'Chưa đúng.' }}</strong>
+            <span>Nghĩa đúng: {{ card.meaningVi }}</span>
+            <small>Nguồn: {{ card.sourceLessonId }}</small>
+          </div>
+          <button data-testid="continue-review" class="button primary" type="button" (click)="continueReview()">Câu tiếp theo →</button>
+        }
+      </section>
+    } @else {
+      <section class="review-card empty">
+        @if (mode() === 'notebook') {
+          <span aria-hidden="true">字</span>
+          <h2>Sổ từ chưa có từ để ôn.</h2>
+          <p>Lưu từ trong bài học để tạo bộ flashcard cá nhân.</p>
+          <a class="button primary" routerLink="/learn/lesson/1">Học Bài 1</a>
+        } @else if (!hasScheduledCards()) {
+          <span aria-hidden="true">字</span>
+          <h2>Chưa có từ để ôn.</h2>
+          <p>Hoàn thành một bài học để thêm từ mới vào lịch ôn bằng flipcard.</p>
+          <a class="button primary" routerLink="/learn/lesson/1">Học Bài 1</a>
+        } @else if (reviewedCount() > 0) {
+          <span aria-hidden="true">✓</span>
+          <h2>Đã hoàn thành lượt ôn hôm nay.</h2>
+          <p>Các thẻ đã được lên lịch cho lần ôn tiếp theo.</p>
+          <a class="button primary" routerLink="/learn">Về lộ trình</a>
+        } @else {
+          <span aria-hidden="true">⌛</span>
+          <h2>Hôm nay chưa có thẻ đến hạn.</h2>
+          <p>Bạn có thể quay lại vào ngày ôn tiếp theo hoặc học thêm bài mới.</p>
+          <a class="button primary" routerLink="/learn">Về lộ trình</a>
+        }
+      </section>
+    }
+  }
+</main>

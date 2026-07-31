@@ -1,0 +1,126 @@
+:host {
+  display: block;
+}
+
+.results-page {
+  padding: clamp(2rem, 6vw, 5rem) 0 5rem;
+}
+
+.results-panel {
+  padding: clamp(1.5rem, 5vw, 4rem);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--paper-raised);
+}
+
+.completion-mark {
+  display: grid;
+  width: 3.5rem;
+  aspect-ratio: 1;
+  margin-bottom: 3rem;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--jade);
+  color: var(--paper-raised);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.headline {
+  max-width: 820px;
+}
+
+.headline p {
+  margin: 0 0 0.8rem;
+  color: var(--jade);
+  font-weight: 750;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.summary div {
+  padding-top: 1rem;
+  border-top: 2px solid var(--jade);
+}
+
+.summary dt {
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+.summary dd {
+  margin: 0.5rem 0 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 750;
+}
+
+.review-list h2 {
+  margin-bottom: 1.2rem;
+}
+
+.review-list > div {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.review-list article {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  border-radius: 14px;
+  background: var(--jade-soft);
+}
+
+.review-list strong {
+  font-family: 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  font-size: 1.6rem;
+}
+
+.review-list span {
+  color: var(--ink-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+}
+
+.empty-state {
+  display: grid;
+  gap: 2rem;
+  justify-items: start;
+}
+
+@media (max-width: 620px) {
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  .review-list article {
+    grid-template-columns: auto 1fr;
+  }
+
+  .review-list article span:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .actions {
+    display: grid;
+  }
+}

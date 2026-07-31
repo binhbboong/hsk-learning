@@ -1,0 +1,62 @@
+<main class="dashboard">
+  <section class="hero" aria-labelledby="welcome-title">
+    <p class="eyebrow">Lộ trình dành cho người Việt</p>
+    <h1 id="welcome-title">Bắt đầu tiếng Trung, từng chữ một.</h1>
+    <p class="intro">
+      Học HSK 1-6 với pinyin, âm Hán-Việt và giải thích rõ ràng bằng tiếng Việt.
+    </p>
+    <a class="explore-link" routerLink="/learn">Mở lộ trình học mới →</a>
+  </section>
+
+  @if (loading()) {
+    <section class="lesson-card state-card" aria-live="polite">
+      <div class="skeleton short"></div>
+      <div class="skeleton title"></div>
+      <div class="skeleton"></div>
+    </section>
+  } @else if (error()) {
+    <section class="lesson-card state-card" role="alert">
+      <h2>Không thể tải bài học lúc này.</h2>
+      <p>Hãy kiểm tra API local rồi thử lại.</p>
+      <button class="button secondary" type="button" (click)="retry()">Thử lại</button>
+    </section>
+  } @else if (lesson(); as currentLesson) {
+    <section class="lesson-card" aria-labelledby="lesson-title">
+      <div class="lesson-meta">
+        <span class="level-badge">HSK {{ currentLesson.level }}</span>
+        <span>{{ currentLesson.cards.length }} từ</span>
+        <span>{{ currentLesson.estimated_minutes }} phút</span>
+      </div>
+      <div class="lesson-copy">
+        <p class="section-label">Bài học được đề xuất</p>
+        <h2 id="lesson-title">{{ currentLesson.title }}</h2>
+        <p>{{ currentLesson.goal }}</p>
+      </div>
+      <a
+        class="button primary"
+        data-testid="start-lesson"
+        routerLink="/lesson"
+      >
+        Bắt đầu học <span aria-hidden="true">→</span>
+      </a>
+    </section>
+  } @else {
+    <section class="lesson-card state-card">
+      <h2>Hãy quay lại sau để bắt đầu HSK 1.</h2>
+    </section>
+  }
+
+  <section class="path" aria-labelledby="path-title">
+    <div>
+      <h2 id="path-title">HSK 1 → HSK 6</h2>
+    </div>
+    <ol>
+      @for (level of [1, 2, 3, 4, 5, 6]; track level) {
+        <li [class.current]="level === 1">
+          <span>{{ level }}</span>
+          <small>{{ level === 1 ? 'Đang học' : 'Sắp tới' }}</small>
+        </li>
+      }
+    </ol>
+  </section>
+</main>

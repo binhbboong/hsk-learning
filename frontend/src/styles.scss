@@ -1,0 +1,131 @@
+:root {
+  --paper: #f3f0e7;
+  --paper-raised: #fbfaf5;
+  --ink: #142b24;
+  --ink-muted: #63736d;
+  --line: #d8ddd5;
+  --jade: #176b54;
+  --jade-dark: #0f4d3c;
+  --jade-soft: #dcebe5;
+  --skeleton: #e1e5df;
+  --font-sans: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+  color-scheme: light dark;
+  font-family: var(--font-sans);
+  background: var(--paper);
+  color: var(--ink);
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--paper);
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 85% 5%, rgb(242 161 141 / 18%), transparent 26rem),
+    var(--paper);
+}
+
+button,
+a {
+  font: inherit;
+}
+
+.button {
+  display: inline-flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.2rem;
+  padding: 0.85rem 1.2rem;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button.primary {
+  background: var(--jade);
+  color: white;
+}
+
+.button.primary:hover {
+  background: var(--jade-dark);
+}
+
+.button.secondary {
+  background: #e3e8e1;
+  color: var(--ink);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--jade);
+  outline-offset: 3px;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #101815;
+    --paper-raised: #19231f;
+    --ink: #edf4f0;
+    --ink-muted: #a9b9b2;
+    --line: #33423c;
+    --jade: #6fc4a4;
+    --jade-dark: #56ab8c;
+    --jade-soft: #263d35;
+    --skeleton: #2b3934;
+  }
+}
+.completion-state {
+  text-align: center;
+  padding: clamp(2rem, 8vw, 5rem);
+}
+
+.completion-state > span {
+  display: inline-grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: #e1f3ec;
+  color: #16765f;
+  font-size: 2rem;
+}
+
+.completion-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.generated-sample-audio {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.sample-audio-state {
+  color: var(--jade);
+  font-weight: 700;
+}

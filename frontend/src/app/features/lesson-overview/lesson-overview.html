@@ -1,0 +1,54 @@
+<main class="lesson-page">
+  <a class="back-link" routerLink="/">← Về lộ trình</a>
+
+  @if (loading()) {
+    <section class="overview-panel loading-state" aria-live="polite">
+      <div class="skeleton short"></div>
+      <div class="skeleton title"></div>
+      <div class="skeleton"></div>
+    </section>
+  } @else if (error()) {
+    <section class="overview-panel" role="alert">
+      <h1>Chưa thể chuẩn bị bài học.</h1>
+      <p>Bạn có thể thử lại hoặc quay về lộ trình.</p>
+      <button class="button secondary" type="button" (click)="retry()">Thử lại</button>
+    </section>
+  } @else if (lesson(); as currentLesson) {
+    <section class="overview-panel">
+      <div class="chapter">
+        <span>HSK {{ currentLesson.level }}</span>
+        <span>{{ currentLesson.cards.length }} thẻ</span>
+        <span>{{ currentLesson.estimated_minutes }} phút</span>
+      </div>
+
+      <div class="headline">
+        <p>Phiên học đầu tiên</p>
+        <h1>{{ currentLesson.title }}</h1>
+        <p class="goal">{{ currentLesson.goal }}</p>
+      </div>
+
+      <div class="supports" aria-label="Nội dung hỗ trợ">
+        <span>Pinyin</span>
+        <span>Hán-Việt</span>
+        <span>Nghĩa tiếng Việt</span>
+        <span>Ví dụ</span>
+      </div>
+
+      <div class="start-row">
+        <p>Lật từng thẻ, tự nhớ trước khi xem đáp án và đánh dấu kết quả.</p>
+        <a
+          class="button primary"
+          data-testid="start-study"
+          routerLink="/study"
+        >
+          Bắt đầu flip-card <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+  } @else {
+    <section class="overview-panel">
+      <h1>Chưa có bài học phù hợp.</h1>
+      <a class="button secondary" routerLink="/">Về lộ trình</a>
+    </section>
+  }
+</main>

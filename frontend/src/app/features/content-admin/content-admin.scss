@@ -1,0 +1,31 @@
+:host { display: block; }
+.content-admin { padding: clamp(2rem, 5vw, 4rem) 0 6rem; }
+.content-admin > header { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 2rem; }
+header a { color: var(--jade); font-weight: 750; text-decoration: none; }
+header p { color: var(--jade); font-weight: 800; }
+h1 { margin: .4rem 0 0; font-size: clamp(2.7rem, 7vw, 5rem); letter-spacing: -.05em; }
+.usage { display: grid; min-width: 250px; gap: .4rem; padding: 1.2rem; border-top: 2px solid var(--jade); background: var(--jade-soft); }
+.usage span, .usage small { color: var(--ink-muted); }
+.workspace { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(0, 2fr); gap: 1rem; }
+aside, article { border: 1px solid var(--line); border-radius: 20px; background: var(--paper-raised); }
+aside { padding: 1rem; }
+aside button { display: grid; width: 100%; gap: .25rem; padding: 1rem; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; cursor: pointer; }
+aside button.current { background: var(--jade-soft); }
+aside span, aside small { color: var(--ink-muted); }
+article { padding: clamp(1.25rem, 4vw, 2rem); }
+article > header { display: flex; justify-content: space-between; gap: 1rem; }
+article h2 { margin: .3rem 0 1rem; font-size: 2rem; }
+.issues, .state { padding: 1rem 1.25rem; border-left: 3px solid var(--jade); background: var(--jade-soft); }
+.error { border-color: #b33a32; }
+label { display: block; margin: 1.5rem 0 .5rem; font-weight: 800; }
+textarea { width: 100%; box-sizing: border-box; padding: 1rem; border: 1px solid var(--line); border-radius: 12px; background: #10251f; color: #e8f4ef; font: .82rem/1.5 Consolas, monospace; }
+article footer { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+article footer button { padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; font-weight: 750; }
+article footer .approve { border-color: var(--jade); background: var(--jade); color: white; }
+article footer .reject { color: #9a332c; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.empty { min-height: 300px; align-content: center; color: var(--ink-muted); }
+@media (max-width: 760px) {
+  .content-admin > header, .workspace { display: grid; grid-template-columns: 1fr; }
+  article footer { flex-direction: column; }
+}

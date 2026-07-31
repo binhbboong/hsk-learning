@@ -1,0 +1,33 @@
+<main class="notebook-page">
+  <header>
+    <a routerLink="/learn">← Lộ trình</a>
+    <p>Bộ từ do chính bạn chọn</p>
+    <h1>Sổ từ cá nhân</h1>
+    <span>{{ notebook.words().length }} từ đã lưu</span>
+  </header>
+
+  @if (notebook.words().length > 0) {
+    <div class="notebook-actions">
+      <a data-testid="review-notebook" class="button primary" routerLink="/learn/review" [queryParams]="{ source: 'notebook' }">Ôn các từ này</a>
+    </div>
+    <section class="word-list" aria-label="Từ đã lưu">
+      @for (word of notebook.words(); track word.id) {
+        <article>
+          <strong lang="zh-Hans">{{ word.hanzi }}</strong>
+          <div>
+            <span>{{ word.pinyin }}</span>
+            <p>{{ word.meaningVi }}</p>
+          </div>
+          <small>{{ word.sourceLessonId }}</small>
+          <button type="button" (click)="remove(word.id)">Xóa</button>
+        </article>
+      }
+    </section>
+  } @else {
+    <section class="empty">
+      <h2>Sổ từ đang trống.</h2>
+      <p>Trong mỗi bài học, chọn “Lưu từ” để tạo bộ từ của riêng bạn.</p>
+      <a class="button primary" routerLink="/learn/lesson/1">Mở Bài 1</a>
+    </section>
+  }
+</main>
