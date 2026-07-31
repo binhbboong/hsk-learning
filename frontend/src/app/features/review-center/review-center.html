@@ -36,11 +36,9 @@
           </div>
           <div class="token-bank" aria-label="Các từ gợi ý">
             @for (token of availableMistakeTokens(); track $index) {
-              <button
-                data-testid="mistake-token"
-                type="button"
-                (click)="chooseMistakeToken(token)"
-              >{{ token }}</button>
+              <button data-testid="mistake-token" type="button" (click)="chooseMistakeToken(token)">
+                {{ token }}
+              </button>
             }
           </div>
           <div class="mistake-actions">
@@ -50,14 +48,18 @@
               type="button"
               [disabled]="arrangedMistakeTokens().length === 0"
               (click)="undoMistakeToken()"
-            >Hoàn tác</button>
+            >
+              Hoàn tác
+            </button>
             <button
               data-testid="submit-mistake-review"
               class="button primary"
               type="button"
               [disabled]="availableMistakeTokens().length > 0"
               (click)="answerArrangedMistake()"
-            >Kiểm tra</button>
+            >
+              Kiểm tra
+            </button>
           </div>
         } @else {
           <label>
@@ -68,9 +70,18 @@
               (input)="updateMistakeAnswer($any($event.target).value)"
             />
           </label>
-          <button data-testid="submit-mistake-review" class="button primary" type="button" (click)="answerMistake()">Kiểm tra</button>
+          <button
+            data-testid="submit-mistake-review"
+            class="button primary"
+            type="button"
+            (click)="answerMistake()"
+          >
+            Kiểm tra
+          </button>
         }
-        @if (mistakeFeedback()) { <div class="feedback" aria-live="polite">{{ mistakeFeedback() }}</div> }
+        @if (mistakeFeedback()) {
+          <div class="feedback" aria-live="polite">{{ mistakeFeedback() }}</div>
+        }
       </section>
     } @else {
       <section class="review-card empty">
@@ -88,13 +99,17 @@
         <p class="quiz-pinyin">{{ card.pinyin }}</p>
         <div class="answer-choices" aria-label="Chọn nghĩa đúng">
           @for (option of answerOptions(); track option; let index = $index) {
-            <button type="button"
+            <button
+              type="button"
               [attr.data-testid]="'review-option-' + index"
               [class.selected]="selectedAnswer() === option"
               [class.correct]="revealed() && option === card.meaningVi"
-              [class.incorrect]="revealed() && selectedAnswer() === option && option !== card.meaningVi"
+              [class.incorrect]="
+                revealed() && selectedAnswer() === option && option !== card.meaningVi
+              "
               [disabled]="revealed()"
-              (click)="chooseAnswer(option)">
+              (click)="chooseAnswer(option)"
+            >
               {{ ['A', 'B', 'C', 'D'][index] }}. {{ option }}
             </button>
           }
@@ -105,16 +120,32 @@
             <span>Nghĩa đúng: {{ card.meaningVi }}</span>
             <small>Nguồn: {{ card.sourceLessonId }}</small>
           </div>
-          <button data-testid="continue-review" class="button primary" type="button" (click)="continueReview()">Câu tiếp theo →</button>
+          <button
+            data-testid="continue-review"
+            class="button primary"
+            type="button"
+            (click)="continueReview()"
+          >
+            Câu tiếp theo →
+          </button>
         }
       </section>
     } @else {
       <section class="review-card empty">
         @if (mode() === 'notebook') {
-          <span aria-hidden="true">字</span>
-          <h2>Sổ từ chưa có từ để ôn.</h2>
-          <p>Lưu từ trong bài học để tạo bộ flashcard cá nhân.</p>
-          <a class="button primary" routerLink="/learn/lesson/1">Học Bài 1</a>
+          @if (notebook.words().length === 0) {
+            <span aria-hidden="true">字</span>
+            <h2>Sổ từ chưa có từ để ôn.</h2>
+            <p>Lưu từ trong bài học để tạo bộ flashcard cá nhân.</p>
+            <a class="button primary" routerLink="/learn/lesson/1">Học Bài 1</a>
+          } @else {
+            <span aria-hidden="true">✓</span>
+            <h2>Đã ôn xong các từ trong sổ.</h2>
+            <p>Tất cả từ đã được đưa vào lịch ôn ngắt quãng.</p>
+            <button class="button primary" type="button" (click)="setMode('notebook')">
+              Ôn lại từ đầu
+            </button>
+          }
         } @else if (!hasScheduledCards()) {
           <span aria-hidden="true">字</span>
           <h2>Chưa có từ để ôn.</h2>

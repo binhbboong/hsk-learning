@@ -102,6 +102,76 @@ describe('ReviewCenter', () => {
     }
   });
 
+  it('automatically advances to the next notebook word after a correct answer', () => {
+    vi.useFakeTimers();
+    try {
+      TestBed.inject(LearningProfileRepository).update((profile) => ({
+        ...profile,
+        notebook: [
+          {
+            id: 'notebook-first',
+            hanzi: '你',
+            pinyin: 'nǐ',
+            meaningVi: 'bạn',
+            sourceLessonId: 'lesson-1',
+            savedAt: '2026-07-01T00:00:00Z',
+          },
+          {
+            id: 'notebook-second',
+            hanzi: '好',
+            pinyin: 'hǎo',
+            meaningVi: 'tốt',
+            sourceLessonId: 'lesson-1',
+            savedAt: '2026-07-01T00:00:00Z',
+          },
+        ],
+      }));
+      const fixture = TestBed.createComponent(ReviewCenter);
+      fixture.componentInstance.setMode('notebook');
+      fixture.detectChanges();
+
+      fixture.componentInstance.chooseAnswer(fixture.componentInstance.currentCard()!.meaningVi);
+      vi.advanceTimersByTime(1000);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.currentCard()?.id).toBe('notebook-second');
+      expect(fixture.nativeElement.textContent).toContain('好');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows notebook review completion after the last word is answered', () => {
+    vi.useFakeTimers();
+    try {
+      TestBed.inject(LearningProfileRepository).update((profile) => ({
+        ...profile,
+        notebook: [
+          {
+            id: 'only-notebook-word',
+            hanzi: '你',
+            pinyin: 'nǐ',
+            meaningVi: 'bạn',
+            sourceLessonId: 'lesson-1',
+            savedAt: '2026-07-01T00:00:00Z',
+          },
+        ],
+      }));
+      const fixture = TestBed.createComponent(ReviewCenter);
+      fixture.componentInstance.setMode('notebook');
+      fixture.detectChanges();
+
+      fixture.componentInstance.chooseAnswer('bạn');
+      vi.advanceTimersByTime(1000);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Đã ôn xong các từ trong sổ');
+      expect(fixture.nativeElement.textContent).not.toContain('Sổ từ chưa có từ để ôn');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('does not claim completion when the learner has no flashcards yet', () => {
     const fixture = TestBed.createComponent(ReviewCenter);
     fixture.detectChanges();

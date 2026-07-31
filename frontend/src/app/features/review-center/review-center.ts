@@ -30,17 +30,22 @@ export class ReviewCenter {
   readonly arrangedMistakeTokens = signal<string[]>([]);
   readonly mistakeFeedback = signal<string | null>(null);
   readonly reviewedCount = signal(0);
+  readonly reviewedNotebookWordIds = signal<string[]>([]);
   readonly hasScheduledCards = computed(() => this.srs.cardCount() > 0);
   private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly reviewCards = computed(() => {
     if (this.mode() === 'notebook') {
-      return this.notebook.words().map((word) => ({
-        ...word,
-        repetitions: 0,
-        intervalDays: 0,
-        dueDate: new Date().toISOString().slice(0, 10),
-      }));
+      const reviewedIds = this.reviewedNotebookWordIds();
+      return this.notebook
+        .words()
+        .filter((word) => !reviewedIds.includes(word.id))
+        .map((word) => ({
+          ...word,
+          repetitions: 0,
+          intervalDays: 0,
+          dueDate: new Date().toISOString().slice(0, 10),
+        }));
     }
     return this.srs.dueCards();
   });
@@ -84,6 +89,7 @@ export class ReviewCenter {
 
   setMode(mode: ReviewMode): void {
     this.clearAutoAdvance();
+    if (mode === 'notebook') this.reviewedNotebookWordIds.set([]);
     this.mode.set(mode);
     this.revealed.set(false);
     this.selectedAnswer.set(null);
@@ -123,6 +129,7 @@ export class ReviewCenter {
     if (!card || !this.revealed()) return;
     if (this.mode() === 'notebook') {
       this.srs.schedule(card, rating);
+      this.reviewedNotebookWordIds.update((ids) => [...ids, card.id]);
     } else {
       this.srs.rate(card.id, rating);
       this.reviewedCount.update((count) => count + 1);
