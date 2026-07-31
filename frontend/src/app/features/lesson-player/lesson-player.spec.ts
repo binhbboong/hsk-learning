@@ -207,6 +207,45 @@ describe('LessonPlayer', () => {
     expect(fixture.componentInstance.arrangedTokens()).toEqual(['我']);
   });
 
+  it('shows the sentence pinyin only after a correct order is confirmed', async () => {
+    const fixture = TestBed.createComponent(LessonPlayer);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.goToStep('sentence-order');
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="order-pinyin"]'),
+    ).toBeNull();
+
+    for (const token of lesson.sentence_order.correct_tokens) {
+      fixture.componentInstance.chooseToken(token);
+    }
+    fixture.componentInstance.submitOrder();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="order-pinyin"]')
+        ?.textContent,
+    ).toContain(lesson.sentence_order.pinyin);
+  });
+
+  it('does not reveal sentence pinyin after an incorrect order', async () => {
+    const fixture = TestBed.createComponent(LessonPlayer);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.goToStep('sentence-order');
+    for (const token of lesson.sentence_order.tokens) {
+      fixture.componentInstance.chooseToken(token);
+    }
+    fixture.componentInstance.submitOrder();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="order-pinyin"]'),
+    ).toBeNull();
+  });
+
   it('completes after recording fallback and updates lesson progress', async () => {
     const router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);

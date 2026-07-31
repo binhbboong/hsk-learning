@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 
 import { LearningProfileRepository } from '../../core/services/learning-profile.repository';
 import { MistakeService } from '../../core/services/mistake.service';
 import { ReviewCenter } from './review-center';
-
 
 describe('ReviewCenter', () => {
   beforeEach(async () => {
@@ -22,8 +22,26 @@ describe('ReviewCenter', () => {
     TestBed.inject(LearningProfileRepository).update((profile) => ({
       ...profile,
       reviewCards: [
-        { id: 'due', hanzi: '你', pinyin: 'nǐ', meaningVi: 'bạn', sourceLessonId: 'lesson-1', repetitions: 0, intervalDays: 1, dueDate: '2000-01-01' },
-        { id: 'later', hanzi: '好', pinyin: 'hǎo', meaningVi: 'tốt', sourceLessonId: 'lesson-1', repetitions: 1, intervalDays: 7, dueDate: '2999-01-01' },
+        {
+          id: 'due',
+          hanzi: '你',
+          pinyin: 'nǐ',
+          meaningVi: 'bạn',
+          sourceLessonId: 'lesson-1',
+          repetitions: 0,
+          intervalDays: 1,
+          dueDate: '2000-01-01',
+        },
+        {
+          id: 'later',
+          hanzi: '好',
+          pinyin: 'hǎo',
+          meaningVi: 'tốt',
+          sourceLessonId: 'lesson-1',
+          repetitions: 1,
+          intervalDays: 7,
+          dueDate: '2999-01-01',
+        },
       ],
     }));
     const fixture = TestBed.createComponent(ReviewCenter);
@@ -36,6 +54,52 @@ describe('ReviewCenter', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Đã hoàn thành lượt ôn hôm nay');
+  });
+
+  it('automatically advances to the next flashcard after a correct answer', () => {
+    vi.useFakeTimers();
+    try {
+      TestBed.inject(LearningProfileRepository).update((profile) => ({
+        ...profile,
+        reviewCards: [
+          {
+            id: 'first',
+            hanzi: '你',
+            pinyin: 'nǐ',
+            meaningVi: 'bạn',
+            sourceLessonId: 'lesson-1',
+            repetitions: 0,
+            intervalDays: 1,
+            dueDate: '2000-01-01',
+          },
+          {
+            id: 'second',
+            hanzi: '好',
+            pinyin: 'hǎo',
+            meaningVi: 'tốt',
+            sourceLessonId: 'lesson-1',
+            repetitions: 0,
+            intervalDays: 1,
+            dueDate: '2000-01-01',
+          },
+        ],
+      }));
+      const fixture = TestBed.createComponent(ReviewCenter);
+      fixture.detectChanges();
+
+      fixture.componentInstance.chooseAnswer(fixture.componentInstance.currentCard()!.meaningVi);
+
+      expect(fixture.componentInstance.currentCard()?.id).toBe('first');
+      expect(fixture.componentInstance.revealed()).toBe(true);
+
+      vi.advanceTimersByTime(1000);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.currentCard()?.id).toBe('second');
+      expect(fixture.nativeElement.textContent).toContain('好');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does not claim completion when the learner has no flashcards yet', () => {
@@ -86,9 +150,9 @@ describe('ReviewCenter', () => {
     const tokenButtons = Array.from(
       fixture.nativeElement.querySelectorAll('[data-testid="mistake-token"]'),
     ) as HTMLButtonElement[];
-    expect(
-      tokenButtons.map((button) => button.textContent?.trim()).sort(),
-    ).toEqual(['学生', '我', '是'].sort());
+    expect(tokenButtons.map((button) => button.textContent?.trim()).sort()).toEqual(
+      ['学生', '我', '是'].sort(),
+    );
     expect(fixture.nativeElement.querySelector('[data-testid="mistake-answer"]')).toBeNull();
 
     for (const token of ['我', '是', '学生']) {
@@ -111,7 +175,10 @@ describe('ReviewCenter', () => {
       imports: [ReviewCenter],
       providers: [
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: () => 'mistakes' } } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: { get: () => 'mistakes' } } },
+        },
       ],
     });
     const fixture = TestBed.createComponent(ReviewCenter);

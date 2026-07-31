@@ -1,11 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { NotebookService } from '../../core/services/notebook.service';
 import { MistakeService } from '../../core/services/mistake.service';
 import { SrsRating, SrsService } from '../../core/services/srs.service';
 import { ReviewQuizService } from '../../core/services/review-quiz.service';
-
 
 type ReviewMode = 'srs' | 'mistakes' | 'notebook';
 
@@ -16,7 +15,9 @@ type ReviewMode = 'srs' | 'mistakes' | 'notebook';
   styleUrl: './review-center.scss',
 })
 export class ReviewCenter {
+  private readonly autoAdvanceDelayMs = 600;
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   readonly srs = inject(SrsService);
   readonly mistakes = inject(MistakeService);
   readonly notebook = inject(NotebookService);
@@ -30,6 +31,7 @@ export class ReviewCenter {
   readonly mistakeFeedback = signal<string | null>(null);
   readonly reviewedCount = signal(0);
   readonly hasScheduledCards = computed(() => this.srs.cardCount() > 0);
+  private autoAdvanceTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly reviewCards = computed(() => {
     if (this.mode() === 'notebook') {
@@ -45,7 +47,12 @@ export class ReviewCenter {
   readonly currentCard = computed(() => this.reviewCards()[0] ?? null);
   readonly answerOptions = computed(() => {
     const card = this.currentCard();
-    return card ? this.quiz.optionsFor(card, this.reviewCards().map((item) => item.meaningVi)) : [];
+    return card
+      ? this.quiz.optionsFor(
+          card,
+          this.reviewCards().map((item) => item.meaningVi),
+        )
+      : [];
   });
   readonly answerCorrect = computed(() => this.selectedAnswer() === this.currentCard()?.meaningVi);
   readonly currentMistake = computed(() => this.mistakes.items()[0] ?? null);
@@ -71,7 +78,12 @@ export class ReviewCenter {
     });
   });
 
+  constructor() {
+    this.destroyRef.onDestroy(() => this.clearAutoAdvance());
+  }
+
   setMode(mode: ReviewMode): void {
+    this.clearAutoAdvance();
     this.mode.set(mode);
     this.revealed.set(false);
     this.selectedAnswer.set(null);
@@ -85,12 +97,23 @@ export class ReviewCenter {
   }
 
   chooseAnswer(answer: string): void {
-    if (this.revealed()) return;
+    const card = this.currentCard();
+    if (this.revealed() || !card) return;
     this.selectedAnswer.set(answer);
     this.revealed.set(true);
+    if (answer !== card.meaningVi) return;
+
+    const cardId = card.id;
+    this.autoAdvanceTimer = setTimeout(() => {
+      this.autoAdvanceTimer = null;
+      if (this.currentCard()?.id === cardId && this.revealed() && this.answerCorrect()) {
+        this.continueReview();
+      }
+    }, this.autoAdvanceDelayMs);
   }
 
   continueReview(): void {
+    this.clearAutoAdvance();
     this.rate(this.answerCorrect() ? 'remembered' : 'forgot');
     this.selectedAnswer.set(null);
   }
@@ -129,10 +152,7 @@ export class ReviewCenter {
   answerMistake(answer = this.mistakeAnswer()): void {
     const mistake = this.currentMistake();
     if (!mistake) return;
-    if (
-      this.normalizeAnswer(answer) ===
-      this.normalizeAnswer(mistake.correctAnswer)
-    ) {
+    if (this.normalizeAnswer(answer) === this.normalizeAnswer(mistake.correctAnswer)) {
       this.mistakes.resolve(mistake.id);
       this.mistakeFeedback.set('Chính xác. Câu này đã được xóa khỏi danh sách sai.');
       this.mistakeAnswer.set('');
@@ -150,6 +170,12 @@ export class ReviewCenter {
 
   private normalizeAnswer(answer: string): string {
     return this.tokenize(answer).join('|').toLocaleLowerCase();
+  }
+
+  private clearAutoAdvance(): void {
+    if (this.autoAdvanceTimer === null) return;
+    clearTimeout(this.autoAdvanceTimer);
+    this.autoAdvanceTimer = null;
   }
 
   private initialMode(): ReviewMode {

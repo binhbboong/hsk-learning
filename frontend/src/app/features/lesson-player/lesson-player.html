@@ -141,6 +141,12 @@
         @if (orderChecked()) {
           <div class="feedback">
             <strong>{{ arrangedTokens().join('|') === currentLesson.sentence_order.correct_tokens.join('|') ? 'Chính xác' : 'Câu này sẽ xuất hiện trong ôn sai' }}</strong>
+            @if (arrangedTokens().join('|') === currentLesson.sentence_order.correct_tokens.join('|')) {
+              <p class="order-pinyin" data-testid="order-pinyin">
+                <span>Pinyin</span>
+                <strong>{{ currentLesson.sentence_order.pinyin }}</strong>
+              </p>
+            }
             <p>{{ currentLesson.sentence_order.explanation_vi }}</p>
           </div>
           <button class="button primary" type="button" (click)="goToStep('pronunciation')">Tiếp tục phát âm</button>

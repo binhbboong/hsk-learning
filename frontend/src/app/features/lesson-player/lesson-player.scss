@@ -30,6 +30,9 @@
 .choice-list button, .token-bank button { padding: 1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: transparent; color: var(--ink); cursor: pointer; }
 .choice-list button.selected { border-color: var(--jade); background: var(--jade-soft); }
 .feedback { margin: 1.5rem 0; padding: 1.25rem; border-left: 3px solid var(--jade); background: var(--jade-soft); }
+.order-pinyin { display: flex; gap: .65rem; align-items: baseline; margin: .75rem 0; }
+.order-pinyin span { color: var(--ink-muted); font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.order-pinyin strong { font-size: 1.1rem; }
 .sentence-builder { display: flex; min-height: 90px; gap: .6rem; align-items: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding: 1rem; border: 1px dashed var(--jade); border-radius: 16px; }
 .sentence-builder span { padding: .7rem 1rem; border-radius: 10px; background: var(--jade-soft); font-size: 1.2rem; }
 .sentence-builder small { color: var(--ink-muted); }
