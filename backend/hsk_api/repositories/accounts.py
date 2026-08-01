@@ -242,10 +242,10 @@ class AccountRepository:
     def count_completed_level_exam_attempts(self, account_id: str, level: int) -> int:
         with self._connect() as connection:
             row = connection.execute(
-                "SELECT COUNT(*) FROM level_exam_attempts WHERE account_id = ? AND level = ? AND status = 'completed'",
+                "SELECT COUNT(*) AS total FROM level_exam_attempts WHERE account_id = ? AND level = ? AND status = 'completed'",
                 (account_id, level),
             ).fetchone()
-        return int(row[0])
+        return int(row["total"])
 
     def has_passed_level_exam(self, account_id: str, level: int) -> bool:
         with self._connect() as connection:
@@ -656,13 +656,13 @@ class AccountRepository:
 
     def ai_request_count_today(self, account_id: str | None = None) -> int:
         today = datetime.now(UTC).date().isoformat()
-        query = "SELECT COUNT(*) FROM ai_usage WHERE substr(created_at, 1, 10) = ?"
+        query = "SELECT COUNT(*) AS total FROM ai_usage WHERE substr(created_at, 1, 10) = ?"
         values: list[str] = [today]
         if account_id:
             query += " AND account_id = ?"
             values.append(account_id)
         with self._connect() as connection:
-            return int(connection.execute(query, tuple(values)).fetchone()[0])
+            return int(connection.execute(query, tuple(values)).fetchone()["total"])
 
     def usage_summary(
         self,
