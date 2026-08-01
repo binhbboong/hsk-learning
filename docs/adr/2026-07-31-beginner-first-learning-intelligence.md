@@ -2,7 +2,7 @@
 
 Date: 2026-07-31
 Slug: beginner-first-learning-intelligence
-Status: Accepted
+Status: Superseded by 2026-08-01-optional-placement-test (entry-level decision only)
 Related spec: docs/specs/learning-intelligence-operations/Specification.md
 
 ## Context
@@ -33,4 +33,3 @@ teacher replacement.
 - Some generated days may wait for review instead of being released.
 - Operators gain a review workflow and usage visibility, with additional administration overhead.
 - Acoustic feedback remains assistive and must communicate uncertainty.
-

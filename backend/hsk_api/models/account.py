@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 import re
 
@@ -44,6 +45,14 @@ class SessionResponse(BaseModel):
     user: UserResponse
 
 
+class LearningPreferences(BaseModel):
+    goal: Literal["communication", "travel", "work", "exam", "culture"] = "communication"
+    dailyMinutes: Literal[10, 20, 30] = 20
+    preferredTopics: list[Literal[
+        "food", "transport", "shopping", "family", "workplace", "hobbies",
+    ]] = Field(default_factory=list, max_length=3)
+
+
 class LearningProfilePayload(BaseModel):
     version: int = 1
     completedLessonIds: list[str] = Field(default_factory=list)
@@ -53,6 +62,10 @@ class LearningProfilePayload(BaseModel):
     notebook: list[dict] = Field(default_factory=list)
     checkpointResults: list[dict] = Field(default_factory=list)
     activityEvents: list[dict] = Field(default_factory=list)
+    topicVocabularyProgress: list[dict] = Field(default_factory=list)
+    startingLevel: int | None = Field(default=None, ge=1, le=6)
+    placementTest: dict | None = None
+    learningPreferences: LearningPreferences | None = None
 
 
 class AccountRecord(BaseModel):

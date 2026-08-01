@@ -13,13 +13,21 @@ from pathlib import Path
 from hsk_api.routers.pronunciation import router as pronunciation_router
 from hsk_api.routers.analytics import router as analytics_router
 from hsk_api.routers.admin import router as admin_router
+from hsk_api.routers.topic_vocabulary import router as topic_vocabulary_router
+from hsk_api.routers.placement import router as placement_router
+from hsk_api.routers.level_exams import router as level_exams_router
 from hsk_api.adapters.openai_pronunciation import OpenAIPronunciationAnalyzer
 from hsk_api.adapters.openai_speech import OpenAISpeechSynthesizer
 from hsk_api.adapters.openai_daily_paths import OpenAIDailyPathGenerator
 from hsk_api.services.daily_paths import DailyPathService
+from hsk_api.adapters.openai_topic_vocabulary import OpenAITopicVocabularyGenerator
+from hsk_api.services.topic_vocabulary import TopicVocabularyService
+from hsk_api.services.placement import PlacementService
+from hsk_api.services.level_exams import LevelExamService
 
 _DEFAULT_ANALYZER = object()
 _DEFAULT_DAILY_PATH_GENERATOR = object()
+_DEFAULT_TOPIC_VOCABULARY_GENERATOR = object()
 
 
 def create_app(
@@ -28,6 +36,7 @@ def create_app(
     pronunciation_analyzer=_DEFAULT_ANALYZER,
     speech_synthesizer=_DEFAULT_ANALYZER,
     daily_path_generator=_DEFAULT_DAILY_PATH_GENERATOR,
+    topic_vocabulary_generator=_DEFAULT_TOPIC_VOCABULARY_GENERATOR,
     admin_emails: set[str] | None = None,
     ai_account_daily_limit: int | None = None,
     ai_system_daily_limit: int | None = None,
@@ -55,6 +64,9 @@ def create_app(
     application.include_router(pronunciation_router)
     application.include_router(analytics_router)
     application.include_router(admin_router)
+    application.include_router(topic_vocabulary_router)
+    application.include_router(placement_router)
+    application.include_router(level_exams_router)
     configured_database_url = (
         settings.database_url.get_secret_value().strip()
         if settings.database_url
@@ -126,6 +138,26 @@ def create_app(
         generator=daily_path_generator,
         account_daily_limit=application.state.ai_account_daily_limit,
         system_daily_limit=application.state.ai_system_daily_limit,
+    )
+    application.state.placement_service = PlacementService(
+        repository, application.state.daily_path_service,
+    )
+    application.state.level_exam_service = LevelExamService(
+        repository, application.state.daily_path_service,
+    )
+    if topic_vocabulary_generator is _DEFAULT_TOPIC_VOCABULARY_GENERATOR:
+        topic_vocabulary_generator = (
+            OpenAITopicVocabularyGenerator.from_api_key(
+                api_key=key,
+                model=settings.openai_model,
+                timeout_seconds=settings.openai_timeout_seconds,
+            )
+            if key
+            else None
+        )
+    application.state.topic_vocabulary_service = TopicVocabularyService(
+        repository=repository,
+        generator=topic_vocabulary_generator,
     )
     return application
 

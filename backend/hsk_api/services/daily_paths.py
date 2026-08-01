@@ -30,6 +30,10 @@ class LearningJourneyCompleteError(ValueError):
     pass
 
 
+class LevelExamRequiredError(ValueError):
+    pass
+
+
 class DailyPathQuotaError(RuntimeError):
     pass
 
@@ -63,11 +67,15 @@ class DailyPathService:
                 }
             )
         bundles = self.repository.list_daily_paths(account_id)
+        placed_initial = next((bundle for bundle in bundles if bundle.path_index == 1), None)
+        base_lessons = placed_initial.lessons if placed_initial else LESSONS
+        base_checkpoint = placed_initial.checkpoint if placed_initial else CHECKPOINT
+        additional_bundles = [bundle for bundle in bundles if bundle.path_index != 1]
         lessons = [
-            *PATH.lessons,
+            *base_lessons,
             *[
                 lesson.model_copy()
-                for bundle in bundles
+                for bundle in additional_bundles
                 for lesson in bundle.lessons
             ],
         ]
@@ -76,9 +84,8 @@ class DailyPathService:
         current_path_index = latest.path_index if latest else 1
         checkpoint_start = lessons[-5].number
         profile = self.repository.get_profile(account_id)
-        day_sources = [
-            (1, 1, 1, LESSONS, CHECKPOINT),
-            *[
+        day_sources = (
+            [
                 (
                     bundle.path_index,
                     bundle.level,
@@ -87,8 +94,16 @@ class DailyPathService:
                     bundle.checkpoint,
                 )
                 for bundle in bundles
-            ],
-        ]
+            ]
+            if placed_initial
+            else [
+                (1, 1, 1, LESSONS, CHECKPOINT),
+                *[
+                    (bundle.path_index, bundle.level, bundle.difficulty, bundle.lessons, bundle.checkpoint)
+                    for bundle in bundles
+                ],
+            ]
+        )
         days = [
             self._day_summary(
                 day_number=day_number,
@@ -100,16 +115,19 @@ class DailyPathService:
             )
             for day_number, level, difficulty, day_lessons, checkpoint in day_sources
         ]
+        latest_lesson_ids = [lesson.id for lesson in lessons[-5:]]
+        mastered_latest = all(
+            lesson_id in profile.completedLessonIds for lesson_id in latest_lesson_ids
+        ) and self._is_mastered(
+            profile,
+            self._checkpoint_for(account_id, checkpoint_start) or base_checkpoint,
+            latest_lesson_ids,
+        )
+        exam_passed = self.repository.has_passed_level_exam(account_id, current_level)
         completed_all_levels = (
             current_level == 6
-            and all(
-                lesson.id in profile.completedLessonIds for lesson in lessons[-5:]
-            )
-            and self._is_mastered(
-                profile,
-                self._checkpoint_for(account_id, checkpoint_start),
-                [lesson.id for lesson in lessons[-5:]],
-            )
+            and mastered_latest
+            and exam_passed
         )
         return LearningPath(
             level=current_level,
@@ -120,21 +138,26 @@ class DailyPathService:
             current_difficulty=latest.difficulty if latest else 1,
             checkpoint_start=checkpoint_start,
             completed_all_levels=completed_all_levels,
+            level_exam_required=mastered_latest and not exam_passed,
+            level_exam_level=current_level if mastered_latest and not exam_passed else None,
             days=days,
         )
 
     def lesson(self, account_id: str | None, number: int) -> MultiActivityLesson | None:
+        if account_id is not None:
+            for bundle in self.repository.list_daily_paths(account_id):
+                for lesson in bundle.lessons:
+                    if lesson.number == number:
+                        return lesson
         if 1 <= number <= len(LESSONS):
             return LESSONS[number - 1]
-        if account_id is None:
-            return None
-        for bundle in self.repository.list_daily_paths(account_id):
-            for lesson in bundle.lessons:
-                if lesson.number == number:
-                    return lesson
         return None
 
     def checkpoint(self, account_id: str | None, start: int) -> Checkpoint | None:
+        if account_id is not None:
+            stored = self._checkpoint_for(account_id, start)
+            if stored is not None:
+                return stored
         if start == 1:
             return CHECKPOINT
         if account_id is None:
@@ -152,7 +175,7 @@ class DailyPathService:
             ):
                 return latest_persisted
 
-        next_path_index = len(bundles) + 2
+        next_path_index = bundles[-1].path_index + 1 if bundles else 2
         existing = self.repository.get_daily_path(account_id, next_path_index)
         if existing is not None:
             return existing
@@ -169,6 +192,10 @@ class DailyPathService:
         retention_rate = self._retention_rate(profile, lesson_ids)
         current_level = latest_bundle.level if latest_bundle else 1
         mastered = checkpoint_rate >= 0.8 and retention_rate >= 0.7
+        if mastered and not self.repository.has_passed_level_exam(account_id, current_level):
+            raise LevelExamRequiredError(
+                f"Hãy hoàn thành bài thi tổng kết HSK {current_level} trước khi lên cấp."
+            )
         if current_level == 6 and mastered:
             raise LearningJourneyCompleteError("Bạn đã hoàn thành lộ trình HSK 1–6.")
         next_level = min(6, current_level + 1) if mastered else current_level
@@ -205,6 +232,9 @@ class DailyPathService:
                     for item in profile.mistakes[-10:]
                     if item.get("prompt")
                 ],
+                learning_goal=(profile.learningPreferences.goal if profile.learningPreferences else None),
+                daily_minutes=(profile.learningPreferences.dailyMinutes if profile.learningPreferences else None),
+                preferred_topics=(profile.learningPreferences.preferredTopics if profile.learningPreferences else []),
             )
             report, bundle = self.quality_gate.assess(
                 generated,
@@ -269,6 +299,48 @@ class DailyPathService:
             payload=bundle.model_dump(mode="json"),
             quality=report,
             status="approved",
+        )
+        return stored
+
+    def create_initial(self, account_id: str, level: int) -> DailyPathBundle:
+        if level <= 1:
+            raise ValueError("HSK 1 uses the reviewed static first day")
+        existing = self.repository.get_daily_path(account_id, 1)
+        if existing is not None:
+            if existing.level != level:
+                raise DailyPathGenerationError("Ngày 1 đã được tạo ở một cấp HSK khác.")
+            return existing
+        if self.generator is None:
+            raise DailyPathGenerationError("Chưa cấu hình AI để tạo Ngày 1 theo cấp đã chọn.")
+        if (self.repository.ai_request_count_today(account_id) >= self.account_daily_limit
+                or self.repository.ai_request_count_today() >= self.system_daily_limit):
+            raise DailyPathQuotaError("Đã đạt giới hạn tạo bài AI hôm nay. Vui lòng quay lại sau.")
+        profile = self.repository.get_profile(account_id)
+        preferences = profile.learningPreferences
+        try:
+            generated = self.generator.generate(
+                account_id=account_id, path_index=1, start_number=1, level=level,
+                difficulty=1, checkpoint_rate=0.0, retention_rate=0.0,
+                previous_titles=[], mistake_prompts=[],
+                learning_goal=preferences.goal if preferences else None,
+                daily_minutes=preferences.dailyMinutes if preferences else None,
+                preferred_topics=preferences.preferredTopics if preferences else [],
+            )
+            report, bundle = self.quality_gate.assess(generated, previous_lessons=[])
+            if not report.passed or bundle is None:
+                raise DailyPathGenerationError("Nội dung AI cần được kiểm tra trước khi phát hành.")
+            self._validate_requested_bundle(
+                bundle, path_index=1, start_number=1, level=level, difficulty=1,
+            )
+        except Exception as error:
+            if isinstance(error, (DailyPathGenerationError, DailyPathQuotaError)):
+                raise
+            raise DailyPathGenerationError("AI chưa thể tạo Ngày 1. Vui lòng thử lại.") from error
+        stored = self.repository.save_daily_path(account_id, bundle)
+        self.repository.record_ai_usage(account_id=account_id, operation="placement_path", status="success")
+        self.repository.save_content_draft(
+            account_id=account_id, path_index=1, payload=bundle.model_dump(mode="json"),
+            quality=report, status="approved",
         )
         return stored
 

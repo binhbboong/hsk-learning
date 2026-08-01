@@ -1,0 +1,141 @@
+<main class="topic-page">
+  @if (!session.session()) {
+    <header class="topic-header">
+      <div>
+        <a routerLink="/learn">← Lộ trình</a>
+        <p>10 từ mỗi phiên · HSK theo trình độ của bạn</p>
+        <h1>Từ vựng theo chủ đề</h1>
+        <span>AI đề xuất các chủ đề thiết thực; bạn chọn nội dung muốn học hôm nay.</span>
+      </div>
+      <button class="button secondary" type="button" [disabled]="loading()" (click)="refresh()">
+        Đề xuất mới
+      </button>
+    </header>
+
+    @if (loading()) {
+      <section class="state" aria-live="polite">Đang chuẩn bị chủ đề phù hợp với bạn…</section>
+    } @else if (error()) {
+      <section class="state error" role="alert">
+        <strong>{{ error() }}</strong>
+        <button class="button primary" type="button" (click)="refresh()">Thử lại</button>
+      </section>
+    } @else if (topics().length === 0) {
+      <section class="state">
+        <strong>Chưa có chủ đề phù hợp.</strong>
+        <span>Hãy thử đề xuất mới hoặc quay lại lộ trình.</span>
+      </section>
+    } @else {
+      @if (source() === 'curated') {
+        <p class="fallback-note" role="status">
+          AI tạm thời chưa khả dụng — bạn vẫn có thể học với các chủ đề đã kiểm duyệt.
+        </p>
+      }
+      <section class="topic-grid" aria-label="Chủ đề được đề xuất">
+        @for (topic of topics(); track topic.id) {
+          <article data-testid="topic-card" class="topic-card">
+            <div class="topic-meta">
+              <span>HSK {{ topic.level }}</span>
+              <b>{{ topic.word_count }} từ</b>
+            </div>
+            <h2>{{ topic.name_vi }}</h2>
+            <p>{{ topic.description_vi }}</p>
+            <small>{{ topic.reason_vi }}</small>
+            <div class="topic-progress">
+              <div><span [style.width.%]="learnedCount(topic) * 10"></span></div>
+              <b>{{ learnedCount(topic) }} / 10 từ đã học</b>
+            </div>
+            <button class="button primary" type="button" (click)="start(topic)">
+              {{ actionLabel(topic) }}
+            </button>
+          </article>
+        }
+      </section>
+    }
+  } @else if (session.progress(); as progress) {
+    <header class="session-header">
+      <button type="button" class="back-link" (click)="backToTopics()">← Chủ đề</button>
+      <div>
+        <p>{{ session.session()!.topic_name_vi }} · HSK {{ session.session()!.level }}</p>
+        <h1>
+          @if (progress.phase === 'cards') { Flipcard {{ progress.cardIndex + 1 }} / 10 }
+          @else if (progress.phase === 'quiz') { Câu {{ progress.quizIndex + 1 }} / 10 }
+          @else { Hoàn thành phiên }
+        </h1>
+      </div>
+    </header>
+    <div class="session-progress" role="progressbar" [attr.aria-valuenow]="progressPercent()" aria-valuemin="0" aria-valuemax="100">
+      <span [style.width.%]="progressPercent()"></span>
+    </div>
+
+    @if (progress.phase === 'cards' && session.currentWord(); as word) {
+      <section class="flipcard" [class.revealed]="cardRevealed()">
+        <p>Mặt {{ cardRevealed() ? 'sau' : 'trước' }}</p>
+        <h2>{{ word.hanzi }}</h2>
+        <button class="audio-button" type="button" [disabled]="audioLoading()" (click)="playAudio(word.audio_text)">
+          ▶ Nghe từ
+        </button>
+        @if (cardRevealed()) {
+          <div class="word-details">
+            <strong>{{ word.pinyin }}</strong>
+            <span>Hán–Việt: {{ word.sino_vietnamese }}</span>
+            <h3>{{ word.meaning_vi }}</h3>
+            @if (word.is_extension) { <small>Từ mở rộng ngoài trọng tâm cấp hiện tại</small> }
+            <blockquote>
+              <b>{{ word.example_zh }}</b>
+              <span>{{ word.example_vi }}</span>
+            </blockquote>
+            <button class="audio-button" type="button" (click)="playAudio(word.example_audio_text)">▶ Nghe câu ví dụ</button>
+          </div>
+          <button data-testid="next-topic-card" class="button primary wide" type="button" (click)="nextCard()">
+            {{ progress.cardIndex === 9 ? 'Bắt đầu kiểm tra' : 'Từ tiếp theo' }}
+          </button>
+        } @else {
+          <button data-testid="reveal-topic-card" class="button primary" type="button" (click)="reveal()">Lật thẻ</button>
+        }
+      </section>
+    } @else if (progress.phase === 'quiz' && session.currentWord(); as word) {
+      <section class="quiz-card">
+        <p>Chọn nghĩa đúng của từ</p>
+        <h2>{{ word.hanzi }}</h2>
+        <button class="audio-button" type="button" (click)="playAudio(word.audio_text)">▶ Nghe từ</button>
+        <div class="quiz-options">
+          @for (option of session.options(); track option) {
+            <button
+              data-testid="quiz-option"
+              type="button"
+              [disabled]="session.answerResult() !== null"
+              [class.correct]="session.answerResult() && option === word.meaning_vi"
+              [class.wrong]="session.answerResult()?.selected === option && option !== word.meaning_vi"
+              (click)="chooseAnswer(option)"
+            >{{ option }}</button>
+          }
+        </div>
+        @if (session.answerResult(); as result) {
+          <div class="answer-feedback" [class.success]="result.correct" role="status">
+            <strong>{{ result.correct ? 'Chính xác!' : 'Chưa đúng.' }}</strong>
+            <span>Nghĩa đúng: {{ result.correctMeaning }}</span>
+          </div>
+          @if (!result.correct) {
+            <button data-testid="continue-topic-quiz" class="button primary" type="button" (click)="continueQuiz()">Tiếp tục</button>
+          }
+        }
+      </section>
+    } @else if (progress.phase === 'completed') {
+      <section class="completion-card">
+        <span aria-hidden="true">✓</span>
+        <p>Đã hoàn thành 10 từ</p>
+        <h2>Bạn nhớ đúng {{ progress.correctWordIds.length }} / 10 từ</h2>
+        <p>Các từ đã được đưa vào lịch ôn ngắt quãng chung và phiên này đã tính vào streak hôm nay.</p>
+        <div>
+          <button class="button primary" type="button" (click)="backToTopics()">Học chủ đề khác</button>
+          <a class="button secondary" routerLink="/learn/review" [queryParams]="{ source: 'srs' }">Ôn từ đến hạn</a>
+        </div>
+      </section>
+    }
+
+    @if (generatedAudioUrl()) {
+      <audio class="generated-audio" [src]="generatedAudioUrl()" autoplay controls></audio>
+    }
+    @if (audioError()) { <p class="audio-error" role="alert">{{ audioError() }}</p> }
+  }
+</main>

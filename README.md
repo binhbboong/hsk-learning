@@ -1,7 +1,8 @@
 # HSK Learning
 
-Nền tảng học HSK 1–6 dành cho người Việt. Người học bắt đầu từ HSK 1, học theo lộ trình mỗi
-ngày gồm 5 bài và có thể tiếp tục ngày kế tiếp sau khi hoàn thành checkpoint.
+Nền tảng học HSK 1–6 dành cho người Việt. Người học có thể bắt đầu HSK 1 ngay hoặc làm bài
+kiểm tra đầu vào tùy chọn, sau đó học theo lộ trình mỗi ngày gồm 5 bài và tiếp tục ngày kế tiếp
+sau khi hoàn thành checkpoint.
 
 ## Production
 
@@ -13,6 +14,8 @@ ngày gồm 5 bài và có thể tiếp tục ngày kế tiếp sau khi hoàn th
 ## Tính năng hiện có
 
 - Lộ trình AI tăng dần từ HSK 1 đến HSK 6, mỗi ngày 5 bài và một checkpoint.
+- Kiểm tra đầu vào thích ứng 20 câu về từ vựng, ngữ pháp, nghe và phát âm; đề xuất HSK 1–6,
+  lưu lượt đang làm và cho phép thi lại sau 30 ngày mà không ảnh hưởng tiến độ.
 - Hội thoại có âm thanh từng câu; bật/tắt Pinyin và bản dịch tiếng Việt.
 - Flashcard và ôn tập ngắt quãng bằng câu hỏi 4 đáp án.
 - Bài nghe chọn đáp án và sắp xếp từ thành câu.

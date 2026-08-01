@@ -40,8 +40,9 @@ mà không yêu cầu chờ sang ngày lịch tiếp theo.
   Việt và cho phép thử lại.
 - FR-16: Nếu kết quả chưa đạt ngưỡng tăng cấp, Ngày tiếp theo MUST tiếp tục cùng cấp HSK với
   nội dung củng cố khó hơn hoặc tập trung điểm yếu.
-- FR-17: Nếu đạt ngưỡng tăng cấp, Ngày tiếp theo MUST bắt đầu cấp HSK mới ở độ khó nhập môn.
-- FR-18: Hoàn thành HSK 6 MUST hiển thị trạng thái hoàn tất thay vì tạo thêm Ngày.
+- FR-17: Nếu đạt ngưỡng checkpoint/ghi nhớ, hệ thống MUST yêu cầu bài thi tổng kết; sau khi
+  đạt bài thi, Ngày tiếp theo MUST bắt đầu cấp HSK mới ở độ khó nhập môn.
+- FR-18: Hoàn thành HSK 6 và đạt bài thi tổng kết MUST hiển thị trạng thái hoàn tất thay vì tạo thêm Ngày.
 
 ## Out of Scope
 
@@ -49,8 +50,8 @@ mà không yêu cầu chờ sang ngày lịch tiếp theo.
 - Giới hạn người học chỉ được hoàn thành một Ngày học mỗi ngày lịch.
 - Thay đổi cách tính streak hiện tại.
 - Thay đổi cấu trúc hoạt động bên trong từng Bài.
-- Thi đầu vào hoặc thi thử HSK toàn cấp. Mọi tài khoản mới bắt đầu tại HSK 1, độ khó 1;
-  không có bước chọn hoặc suy đoán cấp ban đầu.
+- Cấu trúc nội bộ bài thi tổng kết hoặc bài kiểm tra đầu vào; chúng thuộc các đặc tả riêng
+  `hsk-level-exams` và `hsk-placement-test`. Cấu trúc một Ngày vẫn không đổi.
 
 ## Open Questions
 
@@ -67,4 +68,4 @@ Không có.
 - [ ] AC-7: Lỗi tạo Ngày 3 vẫn giữ Ngày 1–2 và hiển thị nút thử lại.
 - [ ] AC-8: Bài thuộc Ngày hoàn thành vẫn mở lại được.
 - [ ] AC-9: Ngày củng cố giữ nguyên cấp HSK và tăng độ khó.
-- [ ] AC-10: Ngày tăng cấp hiển thị cấp HSK mới và độ khó nhập môn.
+- [ ] AC-10: Sau khi đạt bài thi tổng kết, Ngày tăng cấp hiển thị cấp HSK mới và độ khó nhập môn.

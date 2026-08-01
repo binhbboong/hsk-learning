@@ -2,7 +2,7 @@
 
 Date: 2026-07-31
 Slug: progressive-hsk-ai-paths
-Status: Accepted
+Status: Superseded by 2026-08-01-level-exam-promotion-gate (promotion gate only)
 Related spec: docs/specs/ai-daily-paths/Specification.md
 
 ## Context

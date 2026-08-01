@@ -1,0 +1,49 @@
+:host { display: block; min-height: 100vh; background: var(--paper); color: var(--ink); }
+.placement-page { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 72px; }
+.back { color: var(--jade); font-weight: 700; text-decoration: none; }
+.placement-card { margin-top: 28px; padding: clamp(28px, 6vw, 64px); border: 1px solid var(--line); border-radius: 28px; background: var(--paper-raised); }
+.eyebrow, .runner header p { color: var(--jade); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+h1 { margin: 12px 0 18px; font-size: clamp(2.2rem, 7vw, 5.4rem); line-height: .98; }
+.lead { max-width: 680px; color: var(--ink-muted); font-size: 1.14rem; line-height: 1.6; }
+.skill-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 30px 0; }
+.skill-grid span { display: flex; justify-content: space-between; padding: 18px; border-top: 2px solid var(--jade); background: var(--jade-soft); }
+.note, .retake { display: block; color: var(--ink-muted); line-height: 1.5; }
+.actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+.button, .listen, .skip-question { border: 0; border-radius: 14px; padding: 14px 20px; font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; }
+.button.primary { background: var(--jade); color: white; }
+.button.secondary, .listen { background: var(--secondary); color: var(--ink); }
+.button.danger { background: #b94b39; color: #fff; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.runner header { display: flex; justify-content: space-between; align-items: center; }
+.progress { height: 8px; overflow: hidden; border-radius: 99px; background: var(--jade-soft); }
+.progress span { display: block; height: 100%; background: var(--jade); transition: width .2s; }
+.runner h1 { max-width: 760px; font-size: clamp(2rem, 5vw, 4rem); margin-top: 42px; }
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 34px 0 24px; }
+.options button, .levels button { display: flex; align-items: center; gap: 14px; min-height: 70px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-raised); color: var(--ink); padding: 14px 18px; text-align: left; font: inherit; cursor: pointer; }
+.options button.selected, .levels button.selected { border: 2px solid var(--jade); background: var(--jade-soft); }
+.options b { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--jade-soft); }
+.submit { float: right; min-width: 150px; }
+.pronunciation-target { display: grid; justify-items: center; gap: 14px; margin: 32px 0; }
+.pronunciation-target strong { font-size: clamp(2.4rem, 7vw, 5rem); }
+.pronunciation-target span { color: var(--ink-muted); font-size: 1.2rem; }
+.recording-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.recording-actions audio { flex: 1 1 300px; }
+.skip-question { margin-top: 18px; padding-left: 0; background: transparent; color: var(--ink-muted); text-decoration: underline; }
+.error, .advisory { clear: both; margin-top: 20px; padding: 14px 16px; border-radius: 12px; background: var(--danger-soft); color: var(--ink); }
+.result-hero { display: flex; align-items: end; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); }
+.result-hero h1 { margin: 6px 0 20px; }
+.result-hero strong { display: block; margin: 6px 0 24px; font-size: 1.5rem; }
+.skill-results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 28px 0; }
+.skill-results div { display: grid; gap: 7px; padding: 18px; background: var(--jade-soft); border-radius: 14px; }
+.skill-results small { color: var(--ink-muted); }
+fieldset { border: 0; padding: 0; margin: 30px 0 18px; }
+legend { margin-bottom: 12px; font-weight: 800; }
+.levels { display: flex; gap: 8px; flex-wrap: wrap; }
+.levels button { min-height: 48px; }
+.apply { margin-right: 10px; }
+.retake { margin: 20px 0; }
+@media (max-width: 720px) {
+  .skill-grid, .skill-results, .options { grid-template-columns: 1fr; }
+  .placement-card { padding: 26px 20px; border-radius: 20px; }
+  .result-hero { align-items: start; flex-direction: column; }
+}

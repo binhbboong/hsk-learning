@@ -11,6 +11,20 @@
     </div>
   </header>
 
+  @if (repository.profile().startingLevel === null && repository.profile().completedLessonIds.length === 0 && repository.profile().checkpointResults.length === 0) {
+    <section data-testid="placement-entry" class="placement-entry">
+      <div>
+        <p>Chưa chắc nên bắt đầu ở đâu?</p>
+        <h2>Xác định điểm bắt đầu phù hợp</h2>
+        <span>20 câu thích ứng · Từ vựng, ngữ pháp, nghe và phát âm</span>
+      </div>
+      <div class="placement-entry-actions">
+        <a class="button primary" routerLink="/learn/placement">Kiểm tra đầu vào</a>
+        <a class="text-link" routerLink="/learn/lesson/1">Bắt đầu HSK 1</a>
+      </div>
+    </section>
+  }
+
   @if (loading()) {
     <section class="next-card state-card" aria-live="polite">Đang tải lộ trình...</section>
   } @else if (error()) {
@@ -200,6 +214,21 @@
     </section>
 
     <nav class="tool-links" aria-label="Công cụ học tập">
+      <a data-testid="open-learning-preferences" routerLink="/learn/preferences">
+        <small>Cá nhân hóa lộ trình AI</small>
+        <strong>Mục tiêu và chủ đề học</strong>
+        <span>{{ repository.profile().learningPreferences ? repository.profile().learningPreferences?.dailyMinutes + ' phút/ngày · ' + repository.profile().learningPreferences?.preferredTopics?.length + ' chủ đề' : 'Chọn mục tiêu, thời lượng và chủ đề ưu tiên' }}</span>
+      </a>
+      <a data-testid="open-placement" class="placement-link" routerLink="/learn/placement">
+        <small>Đánh giá 4 kỹ năng</small>
+        <strong>Kiểm tra đầu vào</strong>
+        <span>Nhận gợi ý cấp HSK phù hợp · Không ảnh hưởng tiến độ</span>
+      </a>
+      <a data-testid="open-topic-vocabulary" class="topic-link" routerLink="/learn/topics">
+        <small>AI đề xuất theo trình độ</small>
+        <strong>Học từ theo chủ đề</strong>
+        <span>10 từ mỗi phiên · Flipcard và 4 đáp án</span>
+      </a>
       <a
         data-testid="open-flipcard-review"
         class="flipcard-link"

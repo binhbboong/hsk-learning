@@ -20,6 +20,35 @@
           <div class="account-popover">
             <strong>{{ user.display_name }}</strong>
             <small>{{ user.email }}</small>
+            <div class="theme-setting" role="group" aria-label="Chế độ giao diện">
+              <span>Giao diện</span>
+              <div>
+                <button
+                  data-testid="theme-system"
+                  type="button"
+                  [attr.aria-pressed]="theme.preference() === 'system'"
+                  (click)="theme.setPreference('system')"
+                >
+                  Hệ thống
+                </button>
+                <button
+                  data-testid="theme-light"
+                  type="button"
+                  [attr.aria-pressed]="theme.preference() === 'light'"
+                  (click)="theme.setPreference('light')"
+                >
+                  Sáng
+                </button>
+                <button
+                  data-testid="theme-dark"
+                  type="button"
+                  [attr.aria-pressed]="theme.preference() === 'dark'"
+                  (click)="theme.setPreference('dark')"
+                >
+                  Tối
+                </button>
+              </div>
+            </div>
             @if (user.is_admin) {
               <a data-testid="content-admin-link" href="/admin/content">Quản trị nội dung AI</a>
             }

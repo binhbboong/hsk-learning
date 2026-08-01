@@ -43,6 +43,7 @@ class OpenAIDailyPathGenerator:
                 "Mỗi bài phải có hội thoại tự nhiên, Pinyin có dấu, bản dịch và giải thích "
                 "tiếng Việt, từ vựng, nghe chọn đáp án, sắp xếp câu và phát âm. "
                 "Không dùng kiến thức trọng tâm vượt cấp HSK yêu cầu. "
+                "Mục tiêu và chủ đề của người học chỉ là ưu tiên mềm; cấp HSK luôn là ràng buộc cao nhất. "
                 "Mục tiêu của 5 bài phải khác nhau. Không thêm trường ngoài schema."
             ),
             input=(
@@ -54,7 +55,9 @@ class OpenAIDailyPathGenerator:
                 f"Checkpoint gần nhất={context['checkpoint_rate']:.2f}; "
                 f"ghi nhớ từ vựng={context['retention_rate']:.2f}. "
                 f"Không lặp mục tiêu gần đây: {context['previous_titles']}. "
-                f"Điểm yếu cần cân nhắc: {context['mistake_prompts']}."
+                f"Điểm yếu cần cân nhắc: {context['mistake_prompts']}. "
+                f"Mục tiêu học={context.get('learning_goal')}; thời lượng={context.get('daily_minutes')} phút; "
+                f"chủ đề ưu tiên={context.get('preferred_topics', [])}."
             ),
             text_format=DailyPathBundle,
             timeout=self._timeout_seconds,

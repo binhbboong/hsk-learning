@@ -12,6 +12,9 @@ reconcile since each ADR's identity is already unique.
 
 | Date | Decision | Status | Supersedes | Affects |
 |---|---|---|---|---|
+| 2026-08-01 | [Dùng bài thi tổng kết làm điều kiện thăng cấp HSK](2026-08-01-level-exam-promotion-gate.md) | Accepted | Promotion decision in 2026-07-31-progressive-hsk-ai-paths | Checkpoints, daily paths, exams, progression |
+| 2026-08-01 | [Thêm bài kiểm tra đầu vào thích ứng, tùy chọn](2026-08-01-optional-placement-test.md) | Accepted | Entry-level decision in 2026-07-31-beginner-first-learning-intelligence | Onboarding, profiles, daily paths, pronunciation |
+| 2026-08-01 | [Server sở hữu nội dung phiên từ vựng theo chủ đề](2026-08-01-server-owned-topic-vocabulary.md) | Accepted | — | Topic recommendations, vocabulary sessions, profile progress, SRS |
 | 2026-07-31 | [Dùng PostgreSQL cho persistence production](2026-07-31-postgresql-production-persistence.md) | Accepted | SQLite production trong 2026-07-31-user-accounts | Repository, accounts, profiles, AI paths, Vercel deployment |
 | 2026-07-31 | [Bắt đầu HSK 1 và thêm learning intelligence có kiểm soát](2026-07-31-beginner-first-learning-intelligence.md) | Accepted | — | Onboarding, AI quality/cost, pronunciation, analytics, content admin |
 | 2026-07-31 | [Dùng Ngày làm đơn vị trải nghiệm ngoài cùng](2026-07-31-learning-day-container.md) | Accepted | — | Daily path API, dashboard, checkpoints, progress terminology |

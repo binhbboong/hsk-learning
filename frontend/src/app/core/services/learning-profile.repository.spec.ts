@@ -36,6 +36,25 @@ describe('LearningProfileRepository', () => {
     expect(localStorage.getItem('hsk-learning.profile.v1')).not.toBe('{broken');
   });
 
+  it('adds empty topic progress when restoring an older version-one profile', () => {
+    localStorage.setItem('hsk-learning.profile.v1', JSON.stringify({
+      version: 1,
+      completedLessonIds: [],
+      streak: { current: 0, longest: 0, lastActiveDate: null },
+      reviewCards: [],
+      mistakes: [],
+      notebook: [],
+      checkpointResults: [],
+      activityEvents: [],
+    }));
+
+    const repository = new LearningProfileRepository();
+
+    expect(repository.profile().topicVocabularyProgress).toEqual([]);
+    expect(repository.profile().startingLevel).toBeNull();
+    expect(repository.profile().placementTest).toBeNull();
+  });
+
   it('imports anonymous progress into an empty account then syncs updates', () => {
     localStorage.setItem('hsk-learning.session.v1', JSON.stringify({
       token: 'profile-token',

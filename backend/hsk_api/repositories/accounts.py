@@ -12,6 +12,12 @@ from hsk_api.auth.security import hash_token
 from hsk_api.models.account import AccountRecord, LearningProfilePayload
 from hsk_api.models.content_ops import ContentDraft, QualityReport, UsageSummary
 from hsk_api.models.learning_loop import DailyPathBundle
+from hsk_api.models.topic_vocabulary import (
+    TopicRecommendationsResponse,
+    TopicVocabularySession,
+)
+from hsk_api.models.placement import PlacementAttemptRecord
+from hsk_api.models.level_exam import LevelExamAttemptRecord, LevelExamDefinition
 
 
 EMPTY_PROFILE = LearningProfilePayload(
@@ -129,8 +135,160 @@ class AccountRepository:
                     output_tokens INTEGER NOT NULL DEFAULT 0,
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS topic_recommendations (
+                    account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+                    payload TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS topic_vocabulary_sessions (
+                    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                    topic_id TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY(account_id, topic_id)
+                );
+                CREATE TABLE IF NOT EXISTS placement_attempts (
+                    id TEXT PRIMARY KEY,
+                    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                    status TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    completed_at TEXT
+                );
+                CREATE TABLE IF NOT EXISTS level_exams (
+                    id TEXT PRIMARY KEY,
+                    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                    level INTEGER NOT NULL,
+                    source_path_index INTEGER NOT NULL,
+                    payload TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS level_exam_attempts (
+                    id TEXT PRIMARY KEY,
+                    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                    exam_id TEXT NOT NULL REFERENCES level_exams(id) ON DELETE CASCADE,
+                    level INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    completed_at TEXT
+                );
                 """
             )
+
+    def save_level_exam(self, exam: LevelExamDefinition) -> LevelExamDefinition:
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO level_exams VALUES (?, ?, ?, ?, ?, ?)",
+                (exam.id, exam.account_id, exam.level, exam.source_path_index,
+                 exam.model_dump_json(), exam.created_at.isoformat()),
+            )
+        return exam
+
+    def get_level_exam(self, exam_id: str) -> LevelExamDefinition | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM level_exams WHERE id = ?", (exam_id,),
+            ).fetchone()
+        return LevelExamDefinition.model_validate(json.loads(row["payload"])) if row else None
+
+    def get_latest_level_exam(self, account_id: str, level: int) -> LevelExamDefinition | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM level_exams WHERE account_id = ? AND level = ? ORDER BY created_at DESC LIMIT 1",
+                (account_id, level),
+            ).fetchone()
+        return LevelExamDefinition.model_validate(json.loads(row["payload"])) if row else None
+
+    def save_level_exam_attempt(self, attempt: LevelExamAttemptRecord) -> LevelExamAttemptRecord:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO level_exam_attempts(id, account_id, exam_id, level, status, payload, started_at, completed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET status=excluded.status, payload=excluded.payload,
+                    completed_at=excluded.completed_at
+                """,
+                (attempt.id, attempt.account_id, attempt.exam_id, attempt.level, attempt.status,
+                 attempt.model_dump_json(), attempt.started_at.isoformat(),
+                 attempt.completed_at.isoformat() if attempt.completed_at else None),
+            )
+        return attempt
+
+    def get_level_exam_attempt(self, attempt_id: str) -> LevelExamAttemptRecord | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM level_exam_attempts WHERE id = ?", (attempt_id,),
+            ).fetchone()
+        return LevelExamAttemptRecord.model_validate(json.loads(row["payload"])) if row else None
+
+    def get_in_progress_level_exam_attempt(self, account_id: str, level: int) -> LevelExamAttemptRecord | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM level_exam_attempts WHERE account_id = ? AND level = ? AND status = 'in_progress' ORDER BY started_at DESC LIMIT 1",
+                (account_id, level),
+            ).fetchone()
+        return LevelExamAttemptRecord.model_validate(json.loads(row["payload"])) if row else None
+
+    def get_latest_completed_level_exam_attempt(self, account_id: str, level: int) -> LevelExamAttemptRecord | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM level_exam_attempts WHERE account_id = ? AND level = ? AND status = 'completed' ORDER BY completed_at DESC LIMIT 1",
+                (account_id, level),
+            ).fetchone()
+        return LevelExamAttemptRecord.model_validate(json.loads(row["payload"])) if row else None
+
+    def count_completed_level_exam_attempts(self, account_id: str, level: int) -> int:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT COUNT(*) FROM level_exam_attempts WHERE account_id = ? AND level = ? AND status = 'completed'",
+                (account_id, level),
+            ).fetchone()
+        return int(row[0])
+
+    def has_passed_level_exam(self, account_id: str, level: int) -> bool:
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT payload FROM level_exam_attempts WHERE account_id = ? AND level = ? AND status = 'completed'",
+                (account_id, level),
+            ).fetchall()
+        return any(LevelExamAttemptRecord.model_validate(json.loads(row["payload"])).result.passed for row in rows)
+
+    def save_placement_attempt(self, attempt: PlacementAttemptRecord) -> PlacementAttemptRecord:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO placement_attempts(id, account_id, status, payload, started_at, completed_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET status=excluded.status, payload=excluded.payload,
+                    completed_at=excluded.completed_at
+                """,
+                (attempt.id, attempt.account_id, attempt.status, attempt.model_dump_json(),
+                 attempt.started_at.isoformat(), attempt.completed_at.isoformat() if attempt.completed_at else None),
+            )
+        return attempt
+
+    def get_placement_attempt(self, attempt_id: str) -> PlacementAttemptRecord | None:
+        with self._connect() as connection:
+            row = connection.execute("SELECT payload FROM placement_attempts WHERE id = ?", (attempt_id,)).fetchone()
+        return PlacementAttemptRecord.model_validate(json.loads(row["payload"])) if row else None
+
+    def get_in_progress_placement(self, account_id: str) -> PlacementAttemptRecord | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM placement_attempts WHERE account_id = ? AND status = 'in_progress' ORDER BY started_at DESC LIMIT 1",
+                (account_id,),
+            ).fetchone()
+        return PlacementAttemptRecord.model_validate(json.loads(row["payload"])) if row else None
+
+    def get_latest_completed_placement(self, account_id: str) -> PlacementAttemptRecord | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM placement_attempts WHERE account_id = ? AND status = 'completed' ORDER BY completed_at DESC LIMIT 1",
+                (account_id,),
+            ).fetchone()
+        return PlacementAttemptRecord.model_validate(json.loads(row["payload"])) if row else None
 
     def create_account(self, display_name: str, email: str, password_hash: str) -> AccountRecord | None:
         account = AccountRecord(
@@ -226,6 +384,83 @@ class AccountRepository:
                 (account_id, profile.model_dump_json(), datetime.now(UTC).isoformat()),
             )
         return profile
+
+    def get_topic_recommendations(
+        self,
+        account_id: str,
+    ) -> TopicRecommendationsResponse | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT payload FROM topic_recommendations WHERE account_id = ?",
+                (account_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return TopicRecommendationsResponse.model_validate(json.loads(row["payload"]))
+
+    def save_topic_recommendations(
+        self,
+        account_id: str,
+        recommendations: TopicRecommendationsResponse,
+    ) -> TopicRecommendationsResponse:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO topic_recommendations(account_id, payload, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(account_id) DO UPDATE SET payload = excluded.payload,
+                updated_at = excluded.updated_at
+                """,
+                (
+                    account_id,
+                    recommendations.model_dump_json(),
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
+        return recommendations
+
+    def get_topic_session(
+        self,
+        account_id: str,
+        topic_id: str,
+    ) -> TopicVocabularySession | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT payload FROM topic_vocabulary_sessions
+                WHERE account_id = ? AND topic_id = ?
+                """,
+                (account_id, topic_id),
+            ).fetchone()
+        if row is None:
+            return None
+        return TopicVocabularySession.model_validate(json.loads(row["payload"]))
+
+    def save_topic_session(
+        self,
+        account_id: str,
+        session: TopicVocabularySession,
+    ) -> TopicVocabularySession:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO topic_vocabulary_sessions(
+                    account_id, topic_id, session_id, payload, created_at
+                ) VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(account_id, topic_id) DO NOTHING
+                """,
+                (
+                    account_id,
+                    session.topic_id,
+                    session.id,
+                    session.model_dump_json(),
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
+        stored = self.get_topic_session(account_id, session.topic_id)
+        if stored is None:
+            raise RuntimeError("Topic vocabulary session could not be persisted")
+        return stored
 
     def list_daily_paths(self, account_id: str) -> list[DailyPathBundle]:
         with self._connect() as connection:

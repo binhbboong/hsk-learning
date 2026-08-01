@@ -106,6 +106,26 @@ describe('LearningHome', () => {
     expect(flipcardLink?.textContent).toContain('Ôn từ bằng flipcard');
     expect(element.querySelector('[data-testid="open-mistake-review"]')?.getAttribute('href'))
       .toContain('source=mistakes');
+    expect(element.querySelector('[data-testid="open-placement"]')?.getAttribute('href'))
+      .toBe('/learn/placement');
+  });
+
+  it('prioritizes the optional placement test before a new learner starts', async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [LearningHome],
+      providers: [
+        provideRouter([]),
+        { provide: LearningPathApiService, useValue: { getPath: () => of(path) } },
+        { provide: LearningAnalyticsService, useValue: { getInsights: () => of(insights) } },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(LearningHome);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="placement-entry"]')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Xác định điểm bắt đầu phù hợp');
   });
 
   it('automatically requests and displays the next five-lesson chunk', async () => {

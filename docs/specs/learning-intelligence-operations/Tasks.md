@@ -48,7 +48,7 @@ Plan: docs/specs/learning-intelligence-operations/ImplementationPlan.md
 - Backend: toàn bộ `47 passed` (bao gồm adapter WAV và nhánh bỏ qua WebM không hỗ trợ).
 - Frontend: `27` test files, toàn bộ `71 passed` (bao gồm bộ mã hóa PCM16 WAV).
 - Production build: Angular build thành công, không còn cảnh báo budget.
-- Runtime: tài khoản mới vào thẳng `HSK 1`, `Ngày 1`, độ khó `1/5`; không có bài kiểm tra đầu vào.
+- Runtime: tài khoản mới có thể bỏ qua bài đầu vào để vào `HSK 1`, `Ngày 1`, độ khó `1/5`.
 - Runtime: dashboard hiển thị hoạt động 7 ngày, ghi nhớ 30 ngày, điểm yếu và một hành động đề xuất.
 - Dữ liệu tài khoản QA tạm thời đã được xóa sau khi kiểm tra.
 - Runtime sau restart: frontend `4204` trả HTTP 200; backend `8010/api/health` trả HTTP 200.

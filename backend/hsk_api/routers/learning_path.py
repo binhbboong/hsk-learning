@@ -16,6 +16,7 @@ from hsk_api.services.daily_paths import (
     DailyPathQuotaError,
     DailyPathService,
     LearningJourneyCompleteError,
+    LevelExamRequiredError,
 )
 
 
@@ -73,7 +74,7 @@ def create_next_path(
 ) -> DailyPathBundle:
     try:
         return service.create_next(account.id)
-    except (DailyPathNotReadyError, LearningJourneyCompleteError) as exc:
+    except (DailyPathNotReadyError, LearningJourneyCompleteError, LevelExamRequiredError) as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),

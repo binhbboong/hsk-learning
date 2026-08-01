@@ -79,8 +79,8 @@ phải đưa người học tuần tự từ HSK 1 đến HSK 6.
 - FR-23: Hệ thống MUST đưa người học qua các cấp theo đúng thứ tự HSK 1, HSK 2, HSK 3,
   HSK 4, HSK 5 và HSK 6.
 - FR-24: Hệ thống MUST chỉ chuyển sang cấp HSK tiếp theo sau khi người học hoàn thành phạm vi
-  nội dung của cấp hiện tại, đạt ít nhất 80% điểm checkpoint cấp và đạt ít nhất 70% tỷ lệ
-  ghi nhớ từ vựng của cấp hiện tại.
+  nội dung của cấp hiện tại, đạt ít nhất 80% checkpoint, ít nhất 70% ghi nhớ từ vựng và đạt
+  bài thi tổng kết cấp theo đặc tả `hsk-level-exams`.
 - FR-25: Dashboard MUST hiển thị cấp HSK hiện tại, tiến độ trong cấp và mục tiêu cần đạt để
   chuyển cấp.
 - FR-26: Khi chuyển cấp, chặng đầu tiên của cấp mới MUST bắt đầu ở độ khó nhập môn của cấp đó
@@ -120,8 +120,8 @@ Không còn câu hỏi chặn.
   cấp hiện tại vào bài thường.
 - [ ] AC-12: Người học có checkpoint dưới 80% hoặc tỷ lệ ghi nhớ từ vựng dưới 70% tiếp tục
   nhận bài củng cố ở cấp hiện tại thay vì bị chuyển cấp.
-- [ ] AC-13: Người học hoàn thành phạm vi HSK 1, đạt checkpoint từ 80% và tỷ lệ ghi nhớ từ
-  vựng từ 70% nhận chặng HSK 2 đầu tiên với độ khó nhập môn HSK 2.
+- [ ] AC-13: Người học hoàn thành phạm vi HSK 1, đạt checkpoint từ 80%, ghi nhớ từ 70% và
+  đạt bài thi tổng kết nhận chặng HSK 2 đầu tiên với độ khó nhập môn HSK 2.
 - [ ] AC-14: Dashboard hiển thị đúng cấp hiện tại, tiến độ trong cấp và điều kiện chuyển cấp.
 - [ ] AC-15: Sau HSK 6, hệ thống dừng ở trạng thái hoàn thành HSK 1–6 và không tạo bài HSK 7
   hoặc nội dung ngoài phạm vi.

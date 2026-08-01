@@ -124,6 +124,24 @@ def complete_generated_day(profile: dict, bundle: dict) -> None:
     )
 
 
+def pass_level_exam(client: TestClient, headers: dict[str, str]) -> None:
+    started = client.post("/api/v1/level-exams/attempts", headers=headers)
+    assert started.status_code in (200, 201)
+    payload = started.json()
+    definition = client.app.state.account_repository.get_level_exam(payload["exam_id"])
+    for question in definition.questions:
+        saved = client.put(
+            f"/api/v1/level-exams/attempts/{payload['attempt_id']}",
+            json={"question_id": question.id, "option_id": question.correct_option_id,
+                  "current_index": 0}, headers=headers,
+        )
+        assert saved.status_code == 200
+    result = client.post(
+        f"/api/v1/level-exams/attempts/{payload['attempt_id']}/submit", headers=headers,
+    )
+    assert result.status_code == 200 and result.json()["passed"] is True
+
+
 def test_next_path_requires_authentication(tmp_path: Path) -> None:
     client = TestClient(
         create_app(
@@ -163,6 +181,7 @@ def test_creates_and_reuses_a_persisted_next_path(tmp_path: Path) -> None:
     )
     _, headers = register(client)
     assert client.put("/api/v1/profile", json=ready_profile(), headers=headers).status_code == 200
+    pass_level_exam(client, headers)
 
     first = client.post("/api/v1/path/next", headers=headers)
     second = client.post("/api/v1/path/next", headers=headers)
@@ -212,6 +231,7 @@ def test_can_open_day_three_immediately_after_completing_day_two(
     _, headers = register(client)
     profile = ready_profile()
     client.put("/api/v1/profile", json=profile, headers=headers)
+    pass_level_exam(client, headers)
     day_two = client.post("/api/v1/path/next", headers=headers).json()
     day_two_ids = [lesson["id"] for lesson in day_two["lessons"]]
     profile["completedLessonIds"].extend(day_two_ids)
@@ -237,6 +257,7 @@ def test_can_open_day_three_immediately_after_completing_day_two(
         for index in range(10)
     )
     client.put("/api/v1/profile", json=profile, headers=headers)
+    pass_level_exam(client, headers)
 
     day_three = client.post("/api/v1/path/next", headers=headers)
     overview = client.get("/api/v1/path", headers=headers)
@@ -268,6 +289,7 @@ def test_progresses_through_hsk_six_then_completes_the_journey(
 
     hsk_six_day = None
     for expected_level in range(2, 7):
+        pass_level_exam(client, headers)
         response = client.post("/api/v1/path/next", headers=headers)
         assert response.status_code == 200
         bundle = response.json()
@@ -281,6 +303,7 @@ def test_progresses_through_hsk_six_then_completes_the_journey(
     assert hsk_six_day is not None
     complete_generated_day(profile, hsk_six_day)
     client.put("/api/v1/profile", json=profile, headers=headers)
+    pass_level_exam(client, headers)
 
     overview = client.get("/api/v1/path", headers=headers)
     after_hsk_six = client.post("/api/v1/path/next", headers=headers)
@@ -302,6 +325,7 @@ def test_reads_generated_lessons_checkpoint_and_overview(tmp_path: Path) -> None
     )
     _, headers = register(client)
     client.put("/api/v1/profile", json=ready_profile(), headers=headers)
+    pass_level_exam(client, headers)
     client.post("/api/v1/path/next", headers=headers)
 
     overview = client.get("/api/v1/path", params={"level": 1}, headers=headers)
@@ -382,6 +406,7 @@ def test_generator_failure_does_not_persist_a_partial_path(tmp_path: Path) -> No
     )
     _, headers = register(client)
     client.put("/api/v1/profile", json=ready_profile(), headers=headers)
+    pass_level_exam(client, headers)
 
     failed = client.post("/api/v1/path/next", headers=headers)
     overview = client.get("/api/v1/path", params={"level": 1}, headers=headers)

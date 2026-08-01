@@ -1,0 +1,60 @@
+<main class="exam-page">
+  <a routerLink="/learn" class="back">← Lộ trình</a>
+  @if (loading()) {
+    <section class="card">Đang tải bài thi…</section>
+  } @else if (result(); as examResult) {
+    <section class="card result" data-testid="level-exam-result">
+      <p>Tổng kết HSK {{ examResult.level }}</p>
+      <h1>{{ examResult.passed ? 'Bạn đã đạt!' : 'Chưa đạt lần này' }}</h1>
+      <strong>{{ examResult.overall_percent }}%</strong>
+      <div class="skills">
+        @for (skill of examResult.skills; track skill.skill) {
+          <span>{{ skill.skill }} <b>{{ skill.percent }}%</b></span>
+        }
+      </div>
+      <p>Điều kiện: tổng ≥80% và mỗi kỹ năng ≥60%. Đây không phải kỳ thi HSK chính thức.</p>
+      @if (examResult.passed) {
+        <button class="primary" type="button" (click)="continuePath()">Mở lộ trình tiếp theo →</button>
+      } @else {
+        <button class="primary" type="button" (click)="start()">Làm lại với thứ tự mới</button>
+      }
+    </section>
+  } @else if (attempt(); as currentAttempt) {
+    <header><p>Bài thi tổng kết HSK {{ currentAttempt.level }}</p><h1>20 câu · 4 kỹ năng</h1></header>
+    <section class="exam-layout">
+      <nav aria-label="Danh sách câu hỏi">
+        @for (question of currentAttempt.questions; track question.id; let i = $index) {
+          <button type="button" [class.active]="i === currentIndex()" [class.done]="currentAttempt.selections[question.id]" (click)="go(i)">{{ i + 1 }}</button>
+        }
+      </nav>
+      @if (current(); as question) {
+        <article class="card question" data-testid="level-exam-question">
+          <p>Câu {{ currentIndex() + 1 }}/20 · {{ question.skill }}</p>
+          <h2>{{ question.prompt_vi }}</h2>
+          @if (question.skill === 'listening') { <button type="button" class="audio" (click)="playAudio()">▶ Nghe câu</button> }
+          <div class="options">
+            @for (option of question.options; track option.id) {
+              <button type="button" [class.selected]="currentAttempt.selections[question.id] === option.id" (click)="choose(option.id)">{{ option.text }}</button>
+            }
+          </div>
+          <footer>
+            <button type="button" (click)="toggleFlag()" [disabled]="!currentAttempt.selections[question.id]">⚑ Đánh dấu xem lại</button>
+            <span>Đã trả lời {{ answeredCount() }}/20</span>
+          </footer>
+          <div class="actions">
+            <button type="button" (click)="go(currentIndex() - 1)" [disabled]="currentIndex() === 0">← Trước</button>
+            @if (currentIndex() < 19) { <button type="button" class="primary" (click)="go(currentIndex() + 1)">Tiếp →</button> }
+            @else { <button type="button" class="primary" (click)="submit()">Nộp bài</button> }
+          </div>
+        </article>
+      }
+    </section>
+  } @else {
+    <section class="card intro">
+      <p>Bài thi mở khóa cấp tiếp theo</p><h1>Tổng kết HSK</h1>
+      <p>20 câu: từ vựng, ngữ pháp, đọc và nghe. Bạn có thể thoải mái chuyển câu và tiếp tục sau khi tải lại trang.</p>
+      <button data-testid="start-level-exam" class="primary" type="button" (click)="start()">Bắt đầu bài thi</button>
+    </section>
+  }
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+</main>

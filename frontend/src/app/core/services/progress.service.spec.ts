@@ -117,6 +117,16 @@ describe('ProgressService', () => {
     });
   });
 
+  it('routes to the level exam before generating a promoted path', () => {
+    const progress = TestBed.inject(ProgressService);
+    const path = { ...pathWith(5), level_exam_required: true, level_exam_level: 1 };
+    for (const lesson of path.lessons) progress.completeLesson(lesson.id, '2026-07-20');
+    progress.completeCheckpoint(path.days[0].checkpoint_id, 5, 5, '2026-07-20');
+    expect(progress.nextAction(path, '2026-07-20')).toEqual({
+      kind: 'level-exam', title: 'Làm bài thi tổng kết HSK 1', route: '/learn/level-exam',
+    });
+  });
+
   it('routes to the latest checkpoint with its start number', () => {
     const progress = TestBed.inject(ProgressService);
     const path = pathWith(10, 2);

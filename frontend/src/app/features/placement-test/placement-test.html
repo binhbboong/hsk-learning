@@ -1,0 +1,110 @@
+<main class="placement-page">
+  <a class="back" routerLink="/learn">← Về lộ trình</a>
+
+  @if (loading()) {
+    <section class="placement-card state" aria-live="polite">Đang tải bài kiểm tra…</section>
+  } @else if (phase() === 'intro') {
+    <section class="placement-card intro">
+      <p class="eyebrow">Kiểm tra đầu vào tùy chọn</p>
+      <h1>Tìm cấp HSK phù hợp với bạn</h1>
+      <p class="lead">20 câu, khoảng 12 phút. Độ khó thay đổi theo câu trả lời của bạn.</p>
+      <div class="skill-grid" aria-label="Bốn kỹ năng được đánh giá">
+        <span>Từ vựng <b>5</b></span><span>Ngữ pháp <b>5</b></span>
+        <span>Nghe <b>5</b></span><span>Phát âm <b>5</b></span>
+      </div>
+      <p class="note">Kết quả chỉ là gợi ý học tập. Bản thu được phân tích cho câu hiện tại và không được lưu lại.</p>
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+      <div class="actions">
+        <button class="button primary" type="button" [disabled]="busy()" (click)="start()">
+          {{ busy() ? 'Đang chuẩn bị…' : 'Bắt đầu kiểm tra' }}
+        </button>
+        <button class="button secondary" type="button" [disabled]="busy()" (click)="skipPlacement()">
+          Bỏ qua, học HSK 1
+        </button>
+      </div>
+    </section>
+  } @else if (phase() === 'test' && question(); as current) {
+    <section class="placement-card runner">
+      <header>
+        <p>{{ skillLabel() }} · HSK {{ current.level }}</p>
+        <strong>Câu {{ current.number }} / 20</strong>
+      </header>
+      <div class="progress" role="progressbar" [attr.aria-valuenow]="current.number" aria-valuemin="0" aria-valuemax="20">
+        <span [style.width.%]="progress()"></span>
+      </div>
+      <h1>{{ current.prompt_vi }}</h1>
+
+      @if (current.skill === 'listening') {
+        <button class="listen" type="button" [disabled]="busy()" (click)="playListening()">▶ Nghe câu</button>
+      }
+
+      @if (current.skill === 'pronunciation') {
+        <div class="pronunciation-target">
+          <strong>{{ current.target_text }}</strong>
+          <span>{{ current.target_pinyin }}</span>
+          <button class="listen" type="button" (click)="playPronunciationSample()">▶ Nghe mẫu</button>
+        </div>
+        <div class="recording-actions">
+          @if (!recording()) {
+            <button class="button primary" type="button" (click)="startRecording()">Bắt đầu thu âm</button>
+          } @else {
+            <button class="button danger" type="button" (click)="stopRecording()">Dừng thu âm</button>
+          }
+          @if (recordingUrl()) {
+            <audio controls [src]="recordingUrl()"></audio>
+            <button class="button primary" type="button" [disabled]="!recordingReady() || busy()" (click)="submitPronunciation()">
+              {{ busy() ? 'AI đang phân tích…' : 'Gửi phân tích' }}
+            </button>
+          }
+        </div>
+        <button class="skip-question" type="button" [disabled]="busy()" (click)="skipQuestion()">Không thể dùng microphone? Bỏ qua câu này</button>
+      } @else {
+        <div class="options">
+          @for (option of current.options; track option.id) {
+            <button data-testid="placement-option" type="button" [class.selected]="selectedOption() === option.id"
+              [attr.aria-pressed]="selectedOption() === option.id" (click)="selectOption(option.id)">
+              <b>{{ $index + 1 }}</b><span>{{ option.text }}</span>
+            </button>
+          }
+        </div>
+        <button class="button primary submit" type="button" [disabled]="!selectedOption() || busy()" (click)="submitAnswer()">
+          {{ busy() ? 'Đang gửi…' : 'Xác nhận' }}
+        </button>
+      }
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+    </section>
+  } @else if (phase() === 'result' && result(); as placementResult) {
+    <section class="placement-card result">
+      <p class="eyebrow">Kết quả của bạn</p>
+      <div class="result-hero">
+        <div><span>Đề xuất</span><h1>HSK {{ placementResult.recommended_level }}</h1></div>
+        <div><span>Độ tin cậy</span><strong>{{ placementResult.confidence_vi }}</strong></div>
+      </div>
+      <p class="lead">{{ placementResult.summary_vi }}</p>
+      <div class="skill-results">
+        @for (skill of placementResult.skills; track skill.skill) {
+          <div><span>{{ labelFor(skill.skill) }}</span><strong>HSK {{ skill.estimated_level }}</strong><small>{{ skill.assessed }}/5 câu được đánh giá</small></div>
+        }
+      </div>
+      <p class="note">{{ placementResult.disclaimer_vi }}</p>
+      @if (canApplyLevel() && !placementResult.advisory_only) {
+        <fieldset>
+          <legend>Chọn điểm bắt đầu</legend>
+          <div class="levels">
+            @for (level of [1, 2, 3, 4, 5, 6]; track level) {
+              <button type="button" [class.selected]="selectedLevel() === level" (click)="chooseLevel(level)">HSK {{ level }}</button>
+            }
+          </div>
+        </fieldset>
+        <button class="button primary apply" type="button" [disabled]="busy()" (click)="applyLevel()">
+          {{ busy() ? 'Đang tạo Ngày 1…' : 'Dùng cấp này và tạo Ngày 1' }}
+        </button>
+      } @else {
+        <p class="advisory">Kết quả mang tính tham khảo; lộ trình và tiến độ hiện tại của bạn được giữ nguyên.</p>
+      }
+      @if (retakeDate()) { <small class="retake">Có thể kiểm tra lại từ {{ retakeDate()?.slice(0, 10) }}.</small> }
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+      <a class="button secondary" routerLink="/learn">Về trang học</a>
+    </section>
+  }
+</main>

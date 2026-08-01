@@ -1,7 +1,7 @@
 # Architecture: HSK Learning
 
 PRD: docs/business/PRD.md  
-Last updated: 2026-07-31  
+Last updated: 2026-08-01
 Status: Implemented for account-specific AI learning paths
 
 ## PostgreSQL production persistence
@@ -14,8 +14,9 @@ deployments. Both the Neon database and FastAPI Function run in Singapore (`sin1
 
 ## Implemented learning intelligence and content operations
 
-This update supersedes older deferred statements retained later in this document. Every new account
-starts at HSK 1, difficulty 1, without a placement test. Progression still uses completed five-lesson
+New accounts may take the optional server-scored placement test or start HSK 1 immediately. A
+placement-selected HSK 2–6 starting point is committed only after a valid first five-lesson group is
+prepared. Retakes never overwrite existing progress. Progression still uses completed five-lesson
 groups and checkpoints from the daily-path architecture.
 
 AI path generation now passes through schema, HSK-scope, completeness and repetition quality gates.
@@ -52,10 +53,13 @@ exposes Day metadata so clients do not reconstruct level, difficulty or checkpoi
 The approved `ai-daily-paths` specification extends the current five-lesson HSK 1 slice into
 server-owned, account-specific groups of five lessons plus a checkpoint. Generated groups
 remain immutable, use continuous lesson numbering and progressively cover HSK 1 through
-HSK 6. Promotion requires at least 80% on the level checkpoint and 70% vocabulary retention.
-The first static HSK 1 group remains the entry point. After each completed checkpoint, FastAPI
-evaluates checkpoint and vocabulary-retention thresholds, generates or reinforces the appropriate
-HSK level, validates the full multi-activity bundle and persists it in the configured database. Angular then reloads
+HSK 6. Promotion requires at least 80% on the checkpoint, 70% vocabulary retention and a
+passing server-scored level exam (80% overall, no skill below 60%).
+The first static HSK 1 group remains the default entry point; an accepted placement result may replace
+it with an account-specific group at the selected level. After each completed checkpoint, FastAPI
+evaluates checkpoint and vocabulary-retention thresholds. Mastery opens a level exam; only a pass
+generates the next HSK level, while insufficient mastery reinforces the current level. FastAPI validates
+the full multi-activity bundle and persists it in the configured database. Angular then reloads
 the aggregate path and continues at the next continuous lesson number.
 
 Implemented API boundary:
@@ -106,8 +110,9 @@ mistakes, notebook words, and checkpoint results. Microphone recordings remain e
 URLs and are never persisted.
 
 The Angular `/learn` area prioritizes the current unlocked checkpoint, due SRS reviews and the next
-unfinished lesson. Once a group checkpoint is complete, it automatically requests the next five
-lessons. The heading exposes current HSK level, group difficulty and cumulative lesson progress.
+unfinished lesson. Once a group checkpoint is complete, it requests reinforcement or, when mastery
+thresholds are met, prioritizes the level exam before requesting the next five lessons. The heading
+exposes current HSK level, group difficulty and cumulative lesson progress.
 
 ## Overview
 
@@ -176,8 +181,8 @@ môi trường server và không được ghi vào database.
 
 - Nội dung tĩnh mới bao phủ chặng HSK 1 đầu tiên; các chặng tiếp theo HSK 1–6 phụ thuộc
   cấu hình OpenAI và vẫn cần theo dõi chất lượng.
-- Không có bài kiểm tra đầu vào theo quyết định beginner-first. Phản hồi phát âm AI chỉ mang tính hỗ
-  trợ luyện tập; số liệu ghi nhớ 30 ngày chỉ có ý nghĩa sau khi người học tích lũy đủ hoạt động.
+- Bài kiểm tra đầu vào là tùy chọn và kết quả chỉ là gợi ý học tập. Phản hồi phát âm AI chỉ mang tính
+  hỗ trợ luyện tập; số liệu ghi nhớ 30 ngày chỉ có ý nghĩa sau khi người học tích lũy đủ hoạt động.
 - Chất lượng speech synthesis phụ thuộc voice tiếng Trung có trên thiết bị; UI có transcript
   fallback khi audio hoặc microphone không khả dụng.
 - Nội dung AI vẫn cần quan sát chất lượng và quy trình biên tập trước khi mở rộng.

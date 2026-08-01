@@ -28,6 +28,8 @@ export interface LearningPath {
   current_difficulty: number;
   checkpoint_start: number;
   completed_all_levels: boolean;
+  level_exam_required?: boolean;
+  level_exam_level?: number | null;
   days: LearningDaySummary[];
 }
 

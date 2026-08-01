@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from hsk_api.content.learning_path import CHECKPOINT, LESSONS
 from hsk_api.main import create_app
+from tests.test_daily_paths_api import pass_level_exam
 
 
 class Generator:
@@ -103,6 +104,7 @@ def test_quality_failure_is_queued_and_not_published(tmp_path: Path) -> None:
     learner = register(client, "learner@example.com")
     admin = register(client, "admin@example.com")
     client.put("/api/v1/profile", json=ready_profile(), headers=learner)
+    pass_level_exam(client, learner)
 
     response = client.post("/api/v1/path/next", headers=learner)
     path = client.get("/api/v1/path", headers=learner)
@@ -128,6 +130,7 @@ def test_quota_is_checked_before_calling_ai_and_usage_is_recorded(tmp_path: Path
     learner = register(client, "learner@example.com")
     admin = register(client, "admin@example.com")
     client.put("/api/v1/profile", json=ready_profile(), headers=learner)
+    pass_level_exam(client, learner)
 
     repository = client.app.state.account_repository
     repository.record_ai_usage(
@@ -159,6 +162,7 @@ def test_only_admin_can_edit_approve_and_reject_content(tmp_path: Path) -> None:
     learner = register(client, "learner@example.com")
     admin = register(client, "admin@example.com")
     client.put("/api/v1/profile", json=ready_profile(), headers=learner)
+    pass_level_exam(client, learner)
     client.post("/api/v1/path/next", headers=learner)
 
     assert client.get("/api/v1/admin/content", headers=learner).status_code == 403

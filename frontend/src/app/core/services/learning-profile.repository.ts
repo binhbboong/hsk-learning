@@ -42,6 +42,12 @@ export class LearningProfileRepository {
         remote.activityEvents = Array.isArray(remote.activityEvents)
           ? remote.activityEvents
           : [];
+        remote.topicVocabularyProgress = Array.isArray(remote.topicVocabularyProgress)
+          ? remote.topicVocabularyProgress
+          : [];
+        remote.startingLevel = remote.startingLevel ?? null;
+        remote.placementTest = remote.placementTest ?? null;
+        remote.learningPreferences = remote.learningPreferences ?? null;
         const local = this.profile();
         if (this.isEmpty(remote) && !this.isEmpty(local)) {
           return this.saveRemote(local, headers);
@@ -92,6 +98,7 @@ export class LearningProfileRepository {
       && profile.notebook.length === 0
       && profile.checkpointResults.length === 0
       && (profile.activityEvents?.length ?? 0) === 0
+      && (profile.topicVocabularyProgress?.length ?? 0) === 0
       && profile.streak.current === 0;
   }
 
@@ -117,6 +124,12 @@ export class LearningProfileRepository {
       parsed.activityEvents = Array.isArray(parsed.activityEvents)
         ? parsed.activityEvents
         : [];
+      parsed.topicVocabularyProgress = Array.isArray(parsed.topicVocabularyProgress)
+        ? parsed.topicVocabularyProgress
+        : [];
+      parsed.startingLevel = parsed.startingLevel ?? null;
+      parsed.placementTest = parsed.placementTest ?? null;
+      parsed.learningPreferences = parsed.learningPreferences ?? null;
       return parsed;
     } catch {
       const empty = createEmptyLearningProfile();

@@ -46,6 +46,8 @@ class LearningPath(BaseModel):
     current_difficulty: int = Field(default=1, ge=1, le=5)
     checkpoint_start: int = Field(default=1, ge=1)
     completed_all_levels: bool = False
+    level_exam_required: bool = False
+    level_exam_level: int | None = Field(default=None, ge=1, le=6)
     days: list[LearningDaySummary] = Field(default_factory=list)
 
 
@@ -129,7 +131,7 @@ class Checkpoint(BaseModel):
 
 class DailyPathBundle(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    path_index: int = Field(ge=2)
+    path_index: int = Field(ge=1)
     level: int = Field(ge=1, le=6)
     difficulty: int = Field(ge=1, le=5)
     lessons: list[MultiActivityLesson] = Field(min_length=5, max_length=5)

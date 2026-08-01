@@ -50,6 +50,8 @@
 .tool-links span { color: var(--ink-muted); }
 .tool-links small { color: var(--jade); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
 .tool-links .flipcard-link { position: relative; overflow: hidden; background: var(--jade-soft); border-color: color-mix(in srgb, var(--jade) 38%, var(--line)); }
+.tool-links .topic-link { position: relative; overflow: hidden; background: var(--paper-raised); border-color: color-mix(in srgb, var(--jade) 38%, var(--line)); }
+.tool-links .placement-link { background: color-mix(in srgb, var(--jade-soft) 70%, var(--paper-raised)); border-color: color-mix(in srgb, var(--jade) 38%, var(--line)); }
 .tool-links .flipcard-link::after { content: '字'; position: absolute; right: 1rem; bottom: -.75rem; color: color-mix(in srgb, var(--jade) 13%, transparent); font-family: 'Microsoft YaHei', sans-serif; font-size: 5.5rem; line-height: 1; pointer-events: none; }
 .tool-links .flipcard-link strong, .tool-links .flipcard-link span, .tool-links .flipcard-link small { position: relative; z-index: 1; }
 .state-card { min-height: 220px; align-content: center; }

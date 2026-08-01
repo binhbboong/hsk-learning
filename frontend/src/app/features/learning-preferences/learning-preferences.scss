@@ -1,0 +1,6 @@
+.preferences-page { max-width: 900px; margin: auto; padding: 32px 24px 80px; color: var(--ink); }
+header { margin: 56px 0; } header h1 { margin: .15em 0; font-size: clamp(3rem, 8vw, 6rem); line-height: .95; }
+header span, small { color: var(--ink-muted); } section { margin: 38px 0; padding-top: 24px; border-top: 1px solid var(--line); }
+.choices { display: flex; flex-wrap: wrap; gap: 12px; }.choices button { padding: 14px 20px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-raised); color: var(--ink); cursor: pointer; }
+.choices button.selected { border-color: var(--jade); background: var(--jade-soft); color: var(--jade-dark); font-weight: 800; }
+.save { padding: 16px 28px; border: 0; border-radius: 12px; background: var(--jade); color: white; font-weight: 800; cursor: pointer; }

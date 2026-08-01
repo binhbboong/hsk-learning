@@ -1,0 +1,14 @@
+<main class="preferences-page">
+  <a routerLink="/learn">← Lộ trình</a>
+  <header><p>Cá nhân hóa Ngày học AI</p><h1>Mục tiêu học của bạn</h1><span>Lựa chọn này ưu tiên tình huống phù hợp nhưng luôn giữ đúng cấp HSK.</span></header>
+  <section><h2>Bạn học tiếng Trung để làm gì?</h2><div class="choices">@for (goal of goals; track goal[0]) { <button type="button" [class.selected]="value().goal === goal[0]" (click)="setGoal(goal[0])">{{ goal[1] }}</button> }</div></section>
+  <section><h2>Thời lượng mỗi ngày</h2><div class="choices">
+    <button type="button" [class.selected]="value().dailyMinutes === 10" (click)="setMinutes(10)">10 phút</button>
+    <button type="button" [class.selected]="value().dailyMinutes === 20" (click)="setMinutes(20)">20 phút</button>
+    <button type="button" [class.selected]="value().dailyMinutes === 30" (click)="setMinutes(30)">30 phút</button>
+  </div></section>
+  <section><h2>Chủ đề ưu tiên <small>tối đa 3</small></h2><div class="choices">@for (topic of topics; track topic[0]) { <button type="button" [class.selected]="value().preferredTopics.includes(topic[0])" (click)="toggleTopic(topic[0])">{{ topic[1] }}</button> }</div></section>
+  <button data-testid="save-preferences" class="save" type="button" (click)="save()">Lưu sở thích</button>
+  @if (saved()) { <p role="status">✓ Đã lưu. Các Ngày học AI tiếp theo sẽ dùng lựa chọn này.</p> }
+  @if (error()) { <p role="alert">{{ error() }}</p> }
+</main>

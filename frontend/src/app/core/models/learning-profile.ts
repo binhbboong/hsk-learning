@@ -17,9 +17,20 @@ export interface ReviewCard {
 }
 
 export interface ActivityEvent {
-  kind: 'lesson' | 'checkpoint' | 'review' | 'pronunciation';
+  kind: 'lesson' | 'checkpoint' | 'review' | 'pronunciation' | 'topic-vocabulary';
   occurredAt: string;
   score?: number;
+}
+
+export interface TopicVocabularyProgress {
+  topicId: string;
+  sessionId: string;
+  phase: 'cards' | 'quiz' | 'completed';
+  cardIndex: number;
+  quizIndex: number;
+  learnedWordIds: string[];
+  correctWordIds: string[];
+  updatedAt: string;
 }
 
 export interface MistakeRecord {
@@ -56,6 +67,16 @@ export interface LearningProfile {
   notebook: NotebookWord[];
   checkpointResults: CheckpointResult[];
   activityEvents: ActivityEvent[];
+  topicVocabularyProgress: TopicVocabularyProgress[];
+  startingLevel: number | null;
+  placementTest: { status: string; selectedLevel: number } | null;
+  learningPreferences: LearningPreferences | null;
+}
+
+export interface LearningPreferences {
+  goal: 'communication' | 'travel' | 'work' | 'exam' | 'culture';
+  dailyMinutes: 10 | 20 | 30;
+  preferredTopics: Array<'food' | 'transport' | 'shopping' | 'family' | 'workplace' | 'hobbies'>;
 }
 
 export const createEmptyLearningProfile = (): LearningProfile => ({
@@ -67,4 +88,8 @@ export const createEmptyLearningProfile = (): LearningProfile => ({
   notebook: [],
   checkpointResults: [],
   activityEvents: [],
+  topicVocabularyProgress: [],
+  startingLevel: null,
+  placementTest: null,
+  learningPreferences: null,
 });

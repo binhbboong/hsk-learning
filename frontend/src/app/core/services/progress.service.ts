@@ -9,6 +9,7 @@ export type NextActionKind =
   | 'review'
   | 'lesson'
   | 'generate'
+  | 'level-exam'
   | 'complete';
 
 export interface NextLearningAction {
@@ -103,7 +104,7 @@ export class ProgressService {
 
   recordActivity(
     activityDate = this.today(),
-    kind: 'lesson' | 'checkpoint' | 'review' | 'pronunciation' = 'lesson',
+    kind: 'lesson' | 'checkpoint' | 'review' | 'pronunciation' | 'topic-vocabulary' = 'lesson',
     score?: number,
   ): void {
     this.repository.update((profile) => {
@@ -147,6 +148,13 @@ export class ProgressService {
         title: `Làm checkpoint Bài ${start}–${start + 4}`,
         route: '/learn/checkpoint',
         queryParams: { start },
+      };
+    }
+    if (path.level_exam_required) {
+      return {
+        kind: 'level-exam',
+        title: `Làm bài thi tổng kết HSK ${path.level_exam_level ?? path.current_level}`,
+        route: '/learn/level-exam',
       };
     }
     const due = this.repository
