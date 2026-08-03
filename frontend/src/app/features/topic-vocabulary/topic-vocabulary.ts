@@ -98,7 +98,6 @@ export class TopicVocabulary implements OnInit, OnDestroy {
 
   playAudio(text: string): void {
     this.audioError.set(null);
-    if (this.audio.speak(text, 0.85)) return;
     this.audioLoading.set(true);
     this.sampleAudio.synthesize(text, 0.85).subscribe({
       next: (blob) => {
@@ -108,6 +107,10 @@ export class TopicVocabulary implements OnInit, OnDestroy {
         this.audioLoading.set(false);
       },
       error: (error) => {
+        if (this.audio.speak(text, 0.85)) {
+          this.audioLoading.set(false);
+          return;
+        }
         this.audioError.set(error?.error?.detail ?? 'Chưa thể phát giọng mẫu.');
         this.audioLoading.set(false);
       },

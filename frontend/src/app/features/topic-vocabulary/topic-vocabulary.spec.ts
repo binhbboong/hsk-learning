@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { TopicRecommendationsResponse, TopicVocabularySession } from '../../core/models/topic-vocabulary';
+import { AudioService } from '../../core/services/audio.service';
 import { SampleAudioService } from '../../core/services/sample-audio.service';
 import { LearningProfileRepository } from '../../core/services/learning-profile.repository';
 import { TopicVocabularyApiService } from '../../core/services/topic-vocabulary-api.service';
@@ -49,17 +50,23 @@ describe('TopicVocabulary', () => {
     recommendations: vi.fn(() => of(recommendations)),
     startSession: vi.fn(() => of(session)),
   };
+  const deviceAudio = { speak: vi.fn(() => true) };
+  const sampleAudio = { synthesize: vi.fn(() => of(new Blob())) };
 
   beforeEach(async () => {
     localStorage.clear();
     api.recommendations.mockClear();
     api.startSession.mockClear();
+    deviceAudio.speak.mockClear();
+    sampleAudio.synthesize.mockReset();
+    sampleAudio.synthesize.mockReturnValue(of(new Blob()));
     await TestBed.configureTestingModule({
       imports: [TopicVocabulary],
       providers: [
         provideRouter([]),
         { provide: TopicVocabularyApiService, useValue: api },
-        { provide: SampleAudioService, useValue: { synthesize: () => of(new Blob()) } },
+        { provide: AudioService, useValue: deviceAudio },
+        { provide: SampleAudioService, useValue: sampleAudio },
       ],
     }).compileComponents();
   });
@@ -89,6 +96,30 @@ describe('TopicVocabulary', () => {
     expect(fixture.nativeElement.textContent).toContain('TỪ');
     expect(fixture.nativeElement.textContent).toContain('nghĩa 0');
     expect(fixture.nativeElement.textContent).toContain('Đây là từ 0.');
+  });
+
+  it('uses AI audio for the Hanzi before the device speech engine', () => {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:topic-audio');
+    const fixture = TestBed.createComponent(TopicVocabulary);
+    fixture.detectChanges();
+    fixture.componentInstance.start(recommendations.items[0]);
+
+    fixture.componentInstance.playAudio(session.words[0].audio_text);
+
+    expect(sampleAudio.synthesize).toHaveBeenCalledWith('词0', 0.85);
+    expect(deviceAudio.speak).not.toHaveBeenCalled();
+  });
+
+  it('falls back to device speech when AI audio is unavailable', () => {
+    sampleAudio.synthesize.mockReturnValue(throwError(() => new Error('TTS unavailable')));
+    const fixture = TestBed.createComponent(TopicVocabulary);
+    fixture.detectChanges();
+
+    fixture.componentInstance.playAudio('你好');
+
+    expect(sampleAudio.synthesize).toHaveBeenCalledWith('你好', 0.85);
+    expect(deviceAudio.speak).toHaveBeenCalledWith('你好', 0.85);
+    expect(fixture.componentInstance.audioError()).toBeNull();
   });
 
   it('opens four-answer recall after all ten flipcards', () => {

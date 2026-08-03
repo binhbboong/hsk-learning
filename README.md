@@ -97,7 +97,7 @@ Các biến backend nằm trong `backend/.env`; không đặt API key trong fron
 | `OPENAI_MODEL` | Không | Model tạo nội dung AI dạng văn bản (mặc định `gpt-4.1-mini`) |
 | `OPENAI_TRANSCRIPTION_MODEL` | Không | Chuyển giọng nói tiếng Trung thành văn bản |
 | `OPENAI_AUDIO_MODEL` | Không | Phân tích âm thanh/phát âm |
-| `OPENAI_SPEECH_MODEL` | Không | Sinh audio mẫu |
+| `OPENAI_SPEECH_MODEL` | Không | Sinh audio mẫu (mặc định `tts-1-hd`; giọng thiết bị chỉ dùng khi API lỗi) |
 | `OPENAI_DAILY_PATH_TIMEOUT_SECONDS` | Không | Timeout khi tạo lộ trình |
 | `AI_ACCOUNT_DAILY_LIMIT` | Không | Giới hạn lượt tạo AI mỗi tài khoản/ngày |
 | `AI_SYSTEM_DAILY_LIMIT` | Không | Giới hạn lượt tạo AI toàn hệ thống/ngày |

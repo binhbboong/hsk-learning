@@ -177,7 +177,6 @@ export class LessonPlayer implements OnInit, OnDestroy {
   playLine(text: string): void {
     const speed = 0.82;
     this.sampleAudioError.set(null);
-    if (this.audio.speak(text, speed)) return;
     this.sampleAudioLoading.set(true);
     this.sampleAudio.synthesize(text, speed).subscribe({
       next: (blob) => {
@@ -187,6 +186,10 @@ export class LessonPlayer implements OnInit, OnDestroy {
         this.sampleAudioLoading.set(false);
       },
       error: (error) => {
+        if (this.audio.speak(text, speed)) {
+          this.sampleAudioLoading.set(false);
+          return;
+        }
         this.sampleAudioError.set(
           error?.error?.detail ?? 'Chưa thể phát giọng mẫu. Vui lòng thử lại.',
         );

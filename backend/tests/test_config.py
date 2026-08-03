@@ -17,3 +17,9 @@ def test_all_text_generation_defaults_use_gpt_4_1_mini() -> None:
     assert settings.openai_transcription_model != "gpt-4.1-mini"
     assert settings.openai_audio_model != "gpt-4.1-mini"
     assert settings.openai_speech_model != "gpt-4.1-mini"
+
+
+def test_speech_generation_defaults_to_high_quality_tts() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.openai_speech_model == "tts-1-hd"

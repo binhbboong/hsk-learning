@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4.1-mini"
     openai_transcription_model: str = "gpt-4o-transcribe"
     openai_audio_model: str = "gpt-audio"
-    openai_speech_model: str = "gpt-4o-mini-tts"
+    openai_speech_model: str = "tts-1-hd"
     openai_speech_voice: str = "coral"
     openai_timeout_seconds: float = 15.0
     openai_topic_vocabulary_model: str = "gpt-4.1-mini"

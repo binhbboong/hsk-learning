@@ -8,12 +8,17 @@ class OpenAISpeechSynthesizer:
         self.voice = voice
 
     def synthesize(self, *, text: str, speed: float) -> bytes:
-        response = self.client.audio.speech.create(
+        request = dict(
             model=self.model,
             voice=self.voice,
             input=text,
-            instructions="Nói tiếng Phổ thông chuẩn, rõ từng âm tiết và tự nhiên cho người mới học tiếng Trung.",
             response_format="mp3",
             speed=speed,
         )
+        if self.model not in {"tts-1", "tts-1-hd"}:
+            request["instructions"] = (
+                "Nói tiếng Phổ thông chuẩn, rõ từng âm tiết và tự nhiên "
+                "cho người mới học tiếng Trung."
+            )
+        response = self.client.audio.speech.create(**request)
         return response.content

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 
 import { MultiActivityLesson } from '../../core/models/learning-content';
 import { AudioService } from '../../core/services/audio.service';
@@ -134,11 +134,11 @@ describe('LessonPlayer', () => {
     expect(element.textContent).not.toContain('Xin chào!');
 
     (element.querySelector('[data-testid="play-line-line-1"]') as HTMLButtonElement).click();
-    expect(audio.speak).toHaveBeenCalledWith('你好！', 0.82);
+    expect(sampleAudio.synthesize).toHaveBeenCalledWith('你好！', 0.82);
+    expect(audio.speak).not.toHaveBeenCalled();
   });
 
-  it('loads generated sample audio when the browser has no speech engine', async () => {
-    audio.speak.mockReturnValue(false);
+  it('loads generated sample audio before using the browser speech engine', async () => {
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:generated-sample');
     const fixture = TestBed.createComponent(LessonPlayer);
     fixture.detectChanges();
@@ -149,6 +149,19 @@ describe('LessonPlayer', () => {
 
     expect(sampleAudio.synthesize).toHaveBeenCalledWith('你好！', 0.82);
     expect(fixture.componentInstance.generatedAudioUrl()).toBe('blob:generated-sample');
+  });
+
+  it('falls back to the browser speech engine when AI audio fails', async () => {
+    sampleAudio.synthesize.mockReturnValue(throwError(() => new Error('TTS unavailable')));
+    const fixture = TestBed.createComponent(LessonPlayer);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.playLine('你好！');
+
+    expect(sampleAudio.synthesize).toHaveBeenCalledWith('你好！', 0.82);
+    expect(audio.speak).toHaveBeenCalledWith('你好！', 0.82);
+    expect(fixture.componentInstance.sampleAudioError()).toBeNull();
   });
 
   it('does not send a silent recording for AI analysis', async () => {
