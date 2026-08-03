@@ -1,16 +1,17 @@
-name: Nhắc tiến độ học HSK
+name: Nhắc tiến độ học HSK mỗi 30 phút
 
 on:
   schedule:
-    # GitHub Actions dùng UTC: 12:10–16:10 tương ứng 19:10–23:10 Việt Nam.
-    - cron: "10 12-16 * * *"
+    # GitHub Actions dùng UTC: phút 10 và 40, từ 12:10–16:40,
+    # tương ứng 19:10–23:40 Việt Nam.
+    - cron: "10,40 12-16 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: learning-reminder
+  group: learning-reminder-v2
   cancel-in-progress: false
 
 jobs:

@@ -5,12 +5,12 @@ from pathlib import Path
 ROOT = Path(__file__).parents[2]
 
 
-def test_github_action_calls_the_reminder_hourly_from_19h10_to_23h10_vietnam() -> None:
-    workflow = (
-        ROOT / ".github" / "workflows" / "learning-reminder.yml"
-    ).read_text(encoding="utf-8")
+def test_new_github_action_calls_the_reminder_every_30_minutes_from_19h10_to_23h40_vietnam() -> None:
+    workflows = ROOT / ".github" / "workflows"
+    workflow = (workflows / "learning-reminder-v2.yml").read_text(encoding="utf-8")
 
-    assert "10 12-16 * * *" in workflow
+    assert not (workflows / "learning-reminder.yml").exists()
+    assert "10,40 12-16 * * *" in workflow
     assert "https://hsk-learning-api.vercel.app/api/cron/learning-reminder" in workflow
     assert "secrets.CRON_SECRET" in workflow
 
