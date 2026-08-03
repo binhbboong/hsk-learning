@@ -128,7 +128,7 @@ Tài khoản phải đăng xuất và đăng nhập lại sau khi email được
 3. Đặt `TELEGRAM_ACCOUNT_EMAIL` bằng email tài khoản HSK Learning cần theo dõi và tạo
    một `CRON_SECRET` ngẫu nhiên, dài.
 4. Deploy lại backend, sau đó cấu hình Windows Scheduled Task trên máy local gọi endpoint
-   mỗi 15 phút. Backend bắt đầu nhắc từ 19:10, giới hạn tối đa một tin nhắn mỗi 15 phút và
+   mỗi 30 phút. Backend bắt đầu nhắc từ 19:10, giới hạn tối đa một tin nhắn mỗi 30 phút và
    dừng khi Ngày hiện tại hoàn thành.
 
 Bot gửi thông báo hoàn thành ngay khi Ngày hiện tại chuyển sang đủ 5 bài, phiên từ vựng

@@ -87,7 +87,7 @@ def test_does_not_remind_before_19h10_vietnam_time(tmp_path: Path) -> None:
     assert sender.messages == []
 
 
-def test_local_polls_send_at_most_once_every_15_minutes(tmp_path: Path) -> None:
+def test_local_polls_send_at_most_once_every_30_minutes(tmp_path: Path) -> None:
     sender = FakeTelegramSender()
     now = {"value": datetime(2026, 8, 3, 12, 10, tzinfo=UTC)}
     client = TestClient(
@@ -103,7 +103,7 @@ def test_local_polls_send_at_most_once_every_15_minutes(tmp_path: Path) -> None:
 
     first = client.get("/api/cron/learning-reminder", headers=headers)
     second = client.get("/api/cron/learning-reminder", headers=headers)
-    now["value"] += timedelta(minutes=14)
+    now["value"] += timedelta(minutes=29)
     third = client.get("/api/cron/learning-reminder", headers=headers)
     now["value"] += timedelta(minutes=1)
     fourth = client.get("/api/cron/learning-reminder", headers=headers)

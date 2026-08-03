@@ -40,7 +40,7 @@ class LearningReminderService:
     timezone_name: str = "Asia/Ho_Chi_Minh"
     reminder_start_hour: int = 19
     reminder_start_minute: int = 10
-    reminder_interval: timedelta = timedelta(minutes=15)
+    reminder_interval: timedelta = timedelta(minutes=30)
     clock: Callable[[], datetime] = lambda: datetime.now(UTC)
 
     @property
