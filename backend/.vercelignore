@@ -1,0 +1,9 @@
+.tmp/
+.venv/
+.pytest_cache/
+__pycache__/
+tests/
+data/
+*.sqlite
+*.sqlite3
+*.db

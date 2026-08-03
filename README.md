@@ -105,6 +105,11 @@ Các biến backend nằm trong `backend/.env`; không đặt API key trong fron
 | `ALLOWED_ORIGINS` | Có ở production | Danh sách frontend origin được phép gọi API |
 | `DATABASE_URL` | Có ở production | PostgreSQL pooled connection string |
 | `API_BASE_URL` | Có khi build frontend | URL backend, không có dấu `/` cuối |
+| `TELEGRAM_BOT_TOKEN` | Có khi bật nhắc | Token bot từ `@BotFather` |
+| `TELEGRAM_CHAT_ID` | Có khi bật nhắc | Chat ID nhận thông báo |
+| `TELEGRAM_ACCOUNT_EMAIL` | Có khi bật nhắc | Email tài khoản học được theo dõi |
+| `TELEGRAM_TIMEZONE` | Không | Múi giờ nhắc, mặc định `Asia/Ho_Chi_Minh` |
+| `CRON_SECRET` | Có khi bật nhắc | Khóa bảo vệ endpoint cron; GitHub Actions gửi qua Bearer token |
 
 Ví dụ cấp quyền quản trị:
 
@@ -113,6 +118,21 @@ ADMIN_EMAILS=binhqd@vnpt.vn
 ```
 
 Tài khoản phải đăng xuất và đăng nhập lại sau khi email được thêm vào danh sách admin.
+
+### Bật bot Telegram nhắc tiến độ
+
+1. Tạo bot với `@BotFather`, lưu token vào `TELEGRAM_BOT_TOKEN`.
+2. Gửi một tin nhắn cho bot, gọi
+   `https://api.telegram.org/bot<TOKEN>/getUpdates`, rồi lấy `message.chat.id` làm
+   `TELEGRAM_CHAT_ID`.
+3. Đặt `TELEGRAM_ACCOUNT_EMAIL` bằng email tài khoản HSK Learning cần theo dõi và tạo
+   một `CRON_SECRET` ngẫu nhiên, dài.
+4. Thêm cùng giá trị `CRON_SECRET` vào GitHub Actions secret của repository và deploy lại
+   backend. Workflow gọi endpoint mỗi giờ từ 18:00–23:00 theo giờ Việt Nam, lặp lại khi
+   Ngày hiện tại chưa hoàn thành.
+
+Bot gửi thông báo hoàn thành ngay khi Ngày hiện tại chuyển sang đủ 5 bài, phiên từ vựng
+theo chủ đề và checkpoint. Lỗi kết nối Telegram không chặn việc lưu tiến độ học.
 
 ## Kiểm thử
 

@@ -1,0 +1,26 @@
+name: Nhắc tiến độ học HSK
+
+on:
+  schedule:
+    # GitHub Actions dùng UTC: 11:00–16:00 tương ứng 18:00–23:00 Việt Nam.
+    - cron: "0 11-16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learning-reminder
+  cancel-in-progress: false
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gọi bot nhắc tiến độ
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            https://hsk-learning-api.vercel.app/api/cron/learning-reminder

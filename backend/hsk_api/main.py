@@ -16,6 +16,7 @@ from hsk_api.routers.admin import router as admin_router
 from hsk_api.routers.topic_vocabulary import router as topic_vocabulary_router
 from hsk_api.routers.placement import router as placement_router
 from hsk_api.routers.level_exams import router as level_exams_router
+from hsk_api.routers.notifications import router as notifications_router
 from hsk_api.adapters.openai_pronunciation import OpenAIPronunciationAnalyzer
 from hsk_api.adapters.openai_speech import OpenAISpeechSynthesizer
 from hsk_api.adapters.openai_daily_paths import OpenAIDailyPathGenerator
@@ -24,6 +25,13 @@ from hsk_api.adapters.openai_topic_vocabulary import OpenAITopicVocabularyGenera
 from hsk_api.services.topic_vocabulary import TopicVocabularyService
 from hsk_api.services.placement import PlacementService
 from hsk_api.services.level_exams import LevelExamService
+from hsk_api.services.notifications import (
+    LearningReminderService,
+    TelegramBotClient,
+    TelegramSender,
+)
+from collections.abc import Callable
+from datetime import datetime
 
 _DEFAULT_ANALYZER = object()
 _DEFAULT_DAILY_PATH_GENERATOR = object()
@@ -40,6 +48,11 @@ def create_app(
     admin_emails: set[str] | None = None,
     ai_account_daily_limit: int | None = None,
     ai_system_daily_limit: int | None = None,
+    telegram_sender: TelegramSender | None = None,
+    telegram_chat_id: str | None = None,
+    telegram_account_email: str | None = None,
+    cron_secret: str | None = None,
+    reminder_clock: Callable[[], datetime] | None = None,
 ) -> FastAPI:
     settings = get_settings()
     application = FastAPI(
@@ -67,6 +80,7 @@ def create_app(
     application.include_router(topic_vocabulary_router)
     application.include_router(placement_router)
     application.include_router(level_exams_router)
+    application.include_router(notifications_router)
     configured_database_url = (
         settings.database_url.get_secret_value().strip()
         if settings.database_url
@@ -138,6 +152,36 @@ def create_app(
         generator=daily_path_generator,
         account_daily_limit=application.state.ai_account_daily_limit,
         system_daily_limit=application.state.ai_system_daily_limit,
+    )
+    telegram_token = (
+        settings.telegram_bot_token.get_secret_value().strip()
+        if settings.telegram_bot_token else ""
+    )
+    if telegram_sender is None and telegram_token:
+        telegram_sender = TelegramBotClient(telegram_token)
+    application.state.cron_secret = (
+        cron_secret
+        if cron_secret is not None
+        else (
+            settings.cron_secret.get_secret_value().strip()
+            if settings.cron_secret else ""
+        )
+    )
+    reminder_options = {
+        "repository": repository,
+        "daily_paths": application.state.daily_path_service,
+        "sender": telegram_sender,
+        "chat_id": settings.telegram_chat_id if telegram_chat_id is None else telegram_chat_id,
+        "account_email": (
+            settings.telegram_account_email
+            if telegram_account_email is None else telegram_account_email
+        ),
+        "timezone_name": settings.telegram_timezone,
+    }
+    if reminder_clock is not None:
+        reminder_options["clock"] = reminder_clock
+    application.state.learning_reminder_service = LearningReminderService(
+        **reminder_options,
     )
     application.state.placement_service = PlacementService(
         repository, application.state.daily_path_service,

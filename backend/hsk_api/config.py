@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:4200"
     database_url: SecretStr | None = None
     database_path: Path = Path("data/hsk_learning.sqlite3")
+    telegram_bot_token: SecretStr | None = None
+    telegram_chat_id: str = ""
+    telegram_account_email: str = ""
+    telegram_timezone: str = "Asia/Ho_Chi_Minh"
+    cron_secret: SecretStr | None = None
 
     @property
     def origins(self) -> list[str]:
