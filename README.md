@@ -94,7 +94,7 @@ Các biến backend nằm trong `backend/.env`; không đặt API key trong fron
 | Biến | Bắt buộc | Mô tả |
 |---|---:|---|
 | `OPENAI_API_KEY` | Không | API key phía server; thiếu key sẽ dùng fallback |
-| `OPENAI_MODEL` | Không | Model tạo lộ trình AI |
+| `OPENAI_MODEL` | Không | Model tạo nội dung AI dạng văn bản (mặc định `gpt-4.1-mini`) |
 | `OPENAI_TRANSCRIPTION_MODEL` | Không | Chuyển giọng nói tiếng Trung thành văn bản |
 | `OPENAI_AUDIO_MODEL` | Không | Phân tích âm thanh/phát âm |
 | `OPENAI_SPEECH_MODEL` | Không | Sinh audio mẫu |

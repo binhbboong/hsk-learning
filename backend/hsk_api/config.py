@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     )
 
     openai_api_key: SecretStr | None = None
-    openai_model: str = "gpt-5.6"
+    openai_model: str = "gpt-4.1-mini"
     openai_transcription_model: str = "gpt-4o-transcribe"
     openai_audio_model: str = "gpt-audio"
     openai_speech_model: str = "gpt-4o-mini-tts"
