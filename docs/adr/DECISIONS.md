@@ -12,6 +12,7 @@ reconcile since each ADR's identity is already unique.
 
 | Date | Decision | Status | Supersedes | Affects |
 |---|---|---|---|---|
+| 2026-08-03 | [Đưa phiên từ vựng theo chủ đề vào điều kiện hoàn thành Ngày](2026-08-03-mandatory-daily-topic-vocabulary.md) | Accepted | Optional-only role in topic-vocabulary-learning FR-18 | Daily paths, topic vocabulary, checkpoints, dashboard |
 | 2026-08-01 | [Dùng bài thi tổng kết làm điều kiện thăng cấp HSK](2026-08-01-level-exam-promotion-gate.md) | Accepted | Promotion decision in 2026-07-31-progressive-hsk-ai-paths | Checkpoints, daily paths, exams, progression |
 | 2026-08-01 | [Thêm bài kiểm tra đầu vào thích ứng, tùy chọn](2026-08-01-optional-placement-test.md) | Accepted | Entry-level decision in 2026-07-31-beginner-first-learning-intelligence | Onboarding, profiles, daily paths, pronunciation |
 | 2026-08-01 | [Server sở hữu nội dung phiên từ vựng theo chủ đề](2026-08-01-server-owned-topic-vocabulary.md) | Accepted | — | Topic recommendations, vocabulary sessions, profile progress, SRS |

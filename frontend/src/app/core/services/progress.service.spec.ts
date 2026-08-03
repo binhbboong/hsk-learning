@@ -5,7 +5,11 @@ import { LearningProfileRepository } from './learning-profile.repository';
 import { ProgressService } from './progress.service';
 
 
-function pathWith(count: number, currentLevel = 1): LearningPath {
+function pathWith(
+  count: number,
+  currentLevel = 1,
+  topicVocabularyCompleted = true,
+): LearningPath {
   return {
     level: currentLevel,
     current_level: currentLevel,
@@ -37,6 +41,7 @@ function pathWith(count: number, currentLevel = 1): LearningPath {
         ),
         checkpoint_id: `hsk${level}-checkpoint-${start}-${start + 4}`,
         completed_lesson_count: 0,
+        topic_vocabulary_completed: topicVocabularyCompleted,
         checkpoint_completed: false,
         status: dayIndex === count / 5 - 1 ? 'current' as const : 'completed' as const,
       };
@@ -63,6 +68,22 @@ describe('ProgressService', () => {
     expect(progress.completedCountFor(path)).toBe(10);
     expect(progress.completionRateFor(path)).toBe(100);
     expect(progress.pendingCheckpointIdFor(path)).toBe('hsk2-checkpoint-6-10');
+  });
+
+  it('requires ten topic words after five lessons and before the checkpoint', () => {
+    const progress = TestBed.inject(ProgressService);
+    const path = pathWith(5, 1, false);
+    for (const lesson of path.lessons) {
+      progress.completeLesson(lesson.id, '2026-08-03');
+    }
+
+    expect(progress.pendingCheckpointIdFor(path)).toBeNull();
+    expect(progress.nextAction(path, '2026-08-03')).toEqual({
+      kind: 'topic-vocabulary',
+      title: 'Học 10 từ theo chủ đề của Ngày 1',
+      route: '/learn/topics',
+      queryParams: { day: 1 },
+    });
   });
 
   it('increments consecutive days and resets after a missed day', () => {

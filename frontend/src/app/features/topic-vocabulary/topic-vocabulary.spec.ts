@@ -154,4 +154,28 @@ describe('TopicVocabulary', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Câu 3 / 10');
   });
+
+  it('offers a clear return to the daily learning path after completion', () => {
+    TestBed.inject(LearningProfileRepository).update((profile) => ({
+      ...profile,
+      topicVocabularyProgress: [{
+        topicId: 'topic-0',
+        sessionId: 'topic-0-session-1',
+        phase: 'completed',
+        cardIndex: 10,
+        quizIndex: 10,
+        learnedWordIds: session.words.map((word) => word.id),
+        correctWordIds: session.words.map((word) => word.id),
+        updatedAt: '2026-08-03T00:00:00Z',
+      }],
+    }));
+    const fixture = TestBed.createComponent(TopicVocabulary);
+    fixture.detectChanges();
+    fixture.componentInstance.start(recommendations.items[0]);
+    fixture.detectChanges();
+
+    const returnLink = fixture.nativeElement.querySelector('[data-testid="return-to-learning-path"]');
+    expect(returnLink).not.toBeNull();
+    expect(returnLink.getAttribute('href')).toBe('/learn');
+  });
 });

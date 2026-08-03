@@ -26,6 +26,7 @@ const path = {
     lesson_ids: Array.from({ length: 5 }, (_, index) => `hsk1-lesson-${index + 1}`),
     checkpoint_id: 'hsk1-checkpoint-1-5',
     completed_lesson_count: 0,
+    topic_vocabulary_completed: true,
     checkpoint_completed: false,
     status: 'current' as const,
   }],
@@ -70,6 +71,40 @@ const insights = {
 };
 
 describe('LearningHome', () => {
+  it('shows topic vocabulary as a required day step before the checkpoint', async () => {
+    localStorage.clear();
+    const topicRequiredPath = {
+      ...path,
+      days: [{ ...path.days[0], topic_vocabulary_completed: false }],
+    };
+    await TestBed.configureTestingModule({
+      imports: [LearningHome],
+      providers: [
+        provideRouter([]),
+        { provide: LearningPathApiService, useValue: { getPath: () => of(topicRequiredPath) } },
+        { provide: LearningAnalyticsService, useValue: { getInsights: () => of(insights) } },
+      ],
+    }).compileComponents();
+    TestBed.inject(LearningProfileRepository).update((profile) => ({
+      ...profile,
+      completedLessonIds: path.lessons.map((lesson) => lesson.id),
+    }));
+
+    const fixture = TestBed.createComponent(LearningHome);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-testid="next-action"]')?.getAttribute('href'))
+      .toContain('/learn/topics');
+    expect(element.querySelector('[data-testid="mandatory-topic-step"]')?.textContent)
+      .toContain('10 từ theo chủ đề');
+    expect(element.querySelector('[data-testid="mandatory-topic-step"]')?.textContent)
+      .toContain('Bắt buộc');
+    expect(element.textContent).toContain('Hoàn thành 10 từ theo chủ đề để mở checkpoint');
+  });
+
   it('shows streak, lesson progress and the prioritized next action', async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({

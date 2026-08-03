@@ -8,7 +8,7 @@ Approved
 ## Overview
 
 Người học cần nhìn các nhóm 5 Bài hiện có như Ngày 1, Ngày 2… để hiểu rõ mình đang ở đâu
-và điều kiện đi tiếp. Mỗi Ngày kết thúc bằng checkpoint, sau đó Ngày tiếp theo được mở ngay
+và điều kiện đi tiếp. Mỗi Ngày gồm thêm một phiên 10 từ theo chủ đề trước checkpoint; sau đó Ngày tiếp theo được mở ngay
 mà không yêu cầu chờ sang ngày lịch tiếp theo.
 
 ## User Scenarios
@@ -20,17 +20,17 @@ mà không yêu cầu chờ sang ngày lịch tiếp theo.
 
 ## Functional Requirements
 
-- FR-1: Hệ thống MUST gọi mỗi nhóm đúng 5 Bài và một checkpoint là một Ngày.
+- FR-1: Hệ thống MUST gọi mỗi nhóm đúng 5 Bài, một phiên 10 từ theo chủ đề và một checkpoint là một Ngày.
 - FR-2: Ngày MUST được đánh số liên tục bắt đầu từ Ngày 1.
 - FR-3: Bài MUST giữ số liên tục giữa các Ngày.
 - FR-4: Tổng quan lộ trình MUST cung cấp danh sách Ngày với cấp HSK, độ khó, phạm vi Bài,
-  tiến độ Bài và trạng thái checkpoint.
+  tiến độ Bài, trạng thái phiên chủ đề và trạng thái checkpoint.
 - FR-5: Dashboard MUST hiển thị rõ Ngày hiện tại, cấp HSK, độ khó và tiến độ x/5 Bài.
 - FR-6: Dashboard MUST nhóm từng Bài dưới đúng Ngày của Bài đó.
 - FR-7: Ngày hoàn thành MUST được phân biệt với Ngày đang học.
 - FR-8: Người học MUST có thể mở lại Bài thuộc Ngày đã hoàn thành.
-- FR-9: Checkpoint MUST thuộc đúng Ngày và ghi rõ phạm vi 5 Bài.
-- FR-10: Hoàn thành 5 Bài nhưng chưa hoàn thành checkpoint MUST NOT mở Ngày kế tiếp.
+- FR-9: Checkpoint MUST thuộc đúng Ngày, ghi rõ phạm vi 5 Bài và chỉ mở sau khi phiên chủ đề bắt buộc hoàn thành.
+- FR-10: Hoàn thành 5 Bài nhưng chưa hoàn thành phiên chủ đề hoặc checkpoint MUST NOT mở Ngày kế tiếp.
 - FR-11: Hoàn thành checkpoint của Ngày N MUST mở quá trình tạo hoặc cung cấp Ngày N+1 ngay.
 - FR-12: Hệ thống MUST NOT buộc người học chờ sang ngày lịch tiếp theo để học Ngày N+1.
 - FR-13: Hoàn thành nhiều Ngày học trong cùng ngày lịch MUST NOT tăng streak nhiều lần.
@@ -59,7 +59,7 @@ Không có.
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Lộ trình mới hiển thị Ngày 1 chứa Bài 1–5 và checkpoint Bài 1–5.
+- [ ] AC-1: Lộ trình mới hiển thị Ngày 1 chứa Bài 1–5, phiên 10 từ theo chủ đề và checkpoint Bài 1–5.
 - [ ] AC-2: Sau khi có Bài 6–10, dashboard hiển thị Ngày 2 với tiến độ riêng x/5.
 - [ ] AC-3: Hoàn thành Bài 10 dẫn đến checkpoint Bài 6–10.
 - [ ] AC-4: Hoàn thành checkpoint Ngày 2 có thể mở Ngày 3 ngay trong cùng ngày lịch.

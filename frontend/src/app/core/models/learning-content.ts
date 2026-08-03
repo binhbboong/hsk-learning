@@ -15,6 +15,7 @@ export interface LearningDaySummary {
   lesson_ids: string[];
   checkpoint_id: string;
   completed_lesson_count: number;
+  topic_vocabulary_completed: boolean;
   checkpoint_completed: boolean;
   status: 'completed' | 'current';
 }

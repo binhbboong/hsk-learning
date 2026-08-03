@@ -95,6 +95,18 @@ def ready_profile(*, score: int = 3, total: int = 3, remembered: int = 8) -> dic
                 "completedAt": "2026-07-31",
             }
         ],
+        "topicVocabularyProgress": [
+            {
+                "topicId": "daily-topic-1",
+                "sessionId": "daily-topic-1-session-1",
+                "phase": "completed",
+                "cardIndex": 10,
+                "quizIndex": 10,
+                "learnedWordIds": [f"topic-word-{index}" for index in range(10)],
+                "correctWordIds": [f"topic-word-{index}" for index in range(8)],
+                "updatedAt": "2026-07-31T12:00:00Z",
+            }
+        ],
     }
 
 
@@ -121,6 +133,19 @@ def complete_generated_day(profile: dict, bundle: dict) -> None:
             "dueDate": "2026-08-07",
         }
         for index in range(10)
+    )
+    topic_number = len(profile.get("topicVocabularyProgress", [])) + 1
+    profile.setdefault("topicVocabularyProgress", []).append(
+        {
+            "topicId": f"daily-topic-{topic_number}",
+            "sessionId": f"daily-topic-{topic_number}-session-1",
+            "phase": "completed",
+            "cardIndex": 10,
+            "quizIndex": 10,
+            "learnedWordIds": [f"topic-{topic_number}-word-{index}" for index in range(10)],
+            "correctWordIds": [f"topic-{topic_number}-word-{index}" for index in range(8)],
+            "updatedAt": f"2026-08-{topic_number:02d}T12:00:00Z",
+        }
     )
 
 
@@ -169,6 +194,26 @@ def test_next_day_requires_current_day_checkpoint(tmp_path: Path) -> None:
 
     assert response.status_code == 409
     assert "checkpoint của Ngày hiện tại" in response.json()["detail"]
+
+
+def test_next_day_requires_a_completed_topic_vocabulary_session(
+    tmp_path: Path,
+) -> None:
+    client = TestClient(
+        create_app(
+            database_path=tmp_path / "locked-topic-session.sqlite3",
+            daily_path_generator=FakeDailyPathGenerator(),
+        )
+    )
+    _, headers = register(client)
+    profile = ready_profile(score=2, total=3, remembered=6)
+    profile["topicVocabularyProgress"] = []
+    client.put("/api/v1/profile", json=profile, headers=headers)
+
+    response = client.post("/api/v1/path/next", headers=headers)
+
+    assert response.status_code == 409
+    assert "10 từ theo chủ đề" in response.json()["detail"]
 
 
 def test_creates_and_reuses_a_persisted_next_path(tmp_path: Path) -> None:
@@ -233,29 +278,7 @@ def test_can_open_day_three_immediately_after_completing_day_two(
     client.put("/api/v1/profile", json=profile, headers=headers)
     pass_level_exam(client, headers)
     day_two = client.post("/api/v1/path/next", headers=headers).json()
-    day_two_ids = [lesson["id"] for lesson in day_two["lessons"]]
-    profile["completedLessonIds"].extend(day_two_ids)
-    profile["checkpointResults"].append(
-        {
-            "checkpointId": day_two["checkpoint"]["id"],
-            "score": 3,
-            "total": 3,
-            "completedAt": "2026-07-31",
-        }
-    )
-    profile["reviewCards"].extend(
-        {
-            "id": f"day-two-word-{index}",
-            "hanzi": "学",
-            "pinyin": "xué",
-            "meaningVi": "học",
-            "sourceLessonId": day_two_ids[index // 2],
-            "repetitions": 1,
-            "intervalDays": 7,
-            "dueDate": "2026-08-07",
-        }
-        for index in range(10)
-    )
+    complete_generated_day(profile, day_two)
     client.put("/api/v1/profile", json=profile, headers=headers)
     pass_level_exam(client, headers)
 
@@ -350,9 +373,10 @@ def test_reads_generated_lessons_checkpoint_and_overview(tmp_path: Path) -> None
             "lesson_start": 1,
             "lesson_end": 5,
             "lesson_ids": [f"hsk1-lesson-{number}" for number in range(1, 6)],
-            "checkpoint_id": "hsk1-checkpoint-1-5",
-            "completed_lesson_count": 5,
-            "checkpoint_completed": True,
+                "checkpoint_id": "hsk1-checkpoint-1-5",
+                "completed_lesson_count": 5,
+                "topic_vocabulary_completed": True,
+                "checkpoint_completed": True,
             "status": "completed",
         },
         {
@@ -362,9 +386,10 @@ def test_reads_generated_lessons_checkpoint_and_overview(tmp_path: Path) -> None
             "lesson_start": 6,
             "lesson_end": 10,
             "lesson_ids": [f"hsk2-lesson-{number}" for number in range(6, 11)],
-            "checkpoint_id": "hsk2-checkpoint-6-10",
-            "completed_lesson_count": 0,
-            "checkpoint_completed": False,
+                "checkpoint_id": "hsk2-checkpoint-6-10",
+                "completed_lesson_count": 0,
+                "topic_vocabulary_completed": False,
+                "checkpoint_completed": False,
             "status": "current",
         },
     ]

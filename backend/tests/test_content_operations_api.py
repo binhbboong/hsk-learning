@@ -89,6 +89,18 @@ def ready_profile() -> dict:
                 "completedAt": "2026-07-31",
             }
         ],
+        "topicVocabularyProgress": [
+            {
+                "topicId": "daily-topic-1",
+                "sessionId": "daily-topic-1-session-1",
+                "phase": "completed",
+                "cardIndex": 10,
+                "quizIndex": 10,
+                "learnedWordIds": [f"topic-word-{index}" for index in range(10)],
+                "correctWordIds": [f"topic-word-{index}" for index in range(8)],
+                "updatedAt": "2026-07-31T12:00:00Z",
+            }
+        ],
         "activityEvents": [],
     }
 

@@ -45,6 +45,9 @@
 .lesson-path p { margin: 0; color: var(--ink-muted); }
 .lesson-path a { color: var(--jade); font-weight: 750; }
 .lesson-path li.complete { opacity: .75; }
+.mandatory-topic-step { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin: 1rem 0; padding: 1.1rem; background: var(--jade-soft); }
+.mandatory-topic-step > div { display: grid; gap: .25rem; }
+.mandatory-topic-step a, .mandatory-topic-step > strong { color: var(--jade); font-weight: 800; }
 .tool-links { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 1rem; margin-top: 3rem; }
 .tool-links a { display: grid; gap: .5rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: 18px; color: var(--ink); text-decoration: none; }
 .tool-links span { color: var(--ink-muted); }
@@ -56,4 +59,4 @@
 .tool-links .flipcard-link strong, .tool-links .flipcard-link span, .tool-links .flipcard-link small { position: relative; z-index: 1; }
 .state-card { min-height: 220px; align-content: center; }
 @media (max-width: 900px) { .tool-links { grid-template-columns: 1fr 1fr; } .tool-links .flipcard-link { grid-column: 1 / -1; } .insight-grid { grid-template-columns: 1fr 1fr; } .insight-grid article:first-child { grid-column: 1 / -1; } }
-@media (max-width: 720px) { .hero, .metrics, .tool-links, .insight-grid { grid-template-columns: 1fr; } .insight-grid article:first-child { grid-column: auto; } .tool-links .flipcard-link { grid-column: auto; } .next-card { display: grid; } .next-card .button { width: 100%; } .learning-day > header, .learning-day > footer { align-items: flex-start; flex-direction: column; } .lesson-path li { grid-template-columns: auto 1fr; } .lesson-path li > a { grid-column: 2; } }
+@media (max-width: 720px) { .hero, .metrics, .tool-links, .insight-grid { grid-template-columns: 1fr; } .insight-grid article:first-child { grid-column: auto; } .tool-links .flipcard-link { grid-column: auto; } .next-card { display: grid; } .next-card .button { width: 100%; } .learning-day > header, .learning-day > footer, .mandatory-topic-step { align-items: flex-start; flex-direction: column; } .lesson-path li { grid-template-columns: auto 1fr; } .lesson-path li > a { grid-column: 2; } }

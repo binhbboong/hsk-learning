@@ -195,15 +195,35 @@
                 </li>
               }
             </ol>
+            <div
+              data-testid="mandatory-topic-step"
+              class="mandatory-topic-step"
+              [class.complete]="day.topic_vocabulary_completed"
+            >
+              <div>
+                <small>Bắt buộc · 10 từ</small>
+                <strong>10 từ theo chủ đề</strong>
+                <span>Flipcard và 4 đáp án</span>
+              </div>
+              @if (day.topic_vocabulary_completed) {
+                <strong>Đã hoàn thành</strong>
+              } @else if (progress.completedCountForDay(day) === 5) {
+                <a routerLink="/learn/topics" [queryParams]="{ day: day.day_number }">Chọn chủ đề</a>
+              } @else {
+                <small>Hoàn thành đủ 5 Bài để mở</small>
+              }
+            </div>
             <footer>
               <span>Checkpoint Bài {{ day.lesson_start }}–{{ day.lesson_end }}</span>
               @if (progress.isDayCompleted(day)) {
                 <strong>Đã hoàn thành</strong>
-              } @else if (progress.completedCountForDay(day) === 5) {
+              } @else if (progress.completedCountForDay(day) === 5 && day.topic_vocabulary_completed) {
                 <a
                   routerLink="/learn/checkpoint"
                   [queryParams]="{ start: day.lesson_start }"
                 >Làm checkpoint</a>
+              } @else if (progress.completedCountForDay(day) === 5) {
+                <small>Hoàn thành 10 từ theo chủ đề để mở checkpoint</small>
               } @else {
                 <small>Hoàn thành đủ 5 Bài để mở</small>
               }

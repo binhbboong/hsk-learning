@@ -127,7 +127,8 @@
         <h2>Bạn nhớ đúng {{ progress.correctWordIds.length }} / 10 từ</h2>
         <p>Các từ đã được đưa vào lịch ôn ngắt quãng chung và phiên này đã tính vào streak hôm nay.</p>
         <div>
-          <button class="button primary" type="button" (click)="backToTopics()">Học chủ đề khác</button>
+          <a data-testid="return-to-learning-path" class="button primary" routerLink="/learn">Về lộ trình</a>
+          <button class="button secondary" type="button" (click)="backToTopics()">Học chủ đề khác</button>
           <a class="button secondary" routerLink="/learn/review" [queryParams]="{ source: 'srs' }">Ôn từ đến hạn</a>
         </div>
       </section>

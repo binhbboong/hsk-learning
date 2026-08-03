@@ -8,6 +8,7 @@ export type NextActionKind =
   | 'checkpoint'
   | 'review'
   | 'lesson'
+  | 'topic-vocabulary'
   | 'generate'
   | 'level-exam'
   | 'complete';
@@ -48,6 +49,7 @@ export class ProgressService {
     const profile = this.repository.profile();
     return (
       this.completedCountForDay(day) === 5 &&
+      day.topic_vocabulary_completed &&
       profile.checkpointResults.some(
         (result) => result.checkpointId === day.checkpoint_id,
       )
@@ -64,6 +66,7 @@ export class ProgressService {
       !currentDay.lesson_ids.every((id) =>
         profile.completedLessonIds.includes(id),
       )
+      || !currentDay.topic_vocabulary_completed
     ) {
       return null;
     }
@@ -140,6 +143,21 @@ export class ProgressService {
     path: LearningPath,
     today = this.today(),
   ): NextLearningAction {
+    const currentDay = path.days.find(
+      (day) => day.day_number === path.current_day_number,
+    );
+    if (
+      currentDay
+      && this.completedCountForDay(currentDay) === 5
+      && !currentDay.topic_vocabulary_completed
+    ) {
+      return {
+        kind: 'topic-vocabulary',
+        title: `Học 10 từ theo chủ đề của Ngày ${currentDay.day_number}`,
+        route: '/learn/topics',
+        queryParams: { day: currentDay.day_number },
+      };
+    }
     const checkpoint = this.pendingCheckpointIdFor(path);
     if (checkpoint) {
       const start = path.checkpoint_start;

@@ -11,9 +11,9 @@ vào những ngữ cảnh thiết thực. AI đề xuất các chủ đề phù 
 yếu hiện tại; người học chọn một đề xuất để bắt đầu. Nội dung vẫn phải giữ độ khó, từ vựng và ví dụ
 phù hợp với cấp HSK hiện tại.
 
-Mỗi phiên theo chủ đề là một hoạt động bổ trợ ngắn, có tiến độ riêng và dùng chung lịch ôn từ của
-người học. Hoàn thành phiên có thể duy trì chuỗi ngày học, nhưng không thay thế các bài bắt buộc
-hoặc checkpoint trong lộ trình HSK 1–6.
+Mỗi phiên theo chủ đề là một hoạt động ngắn, có tiến độ riêng và dùng chung lịch ôn từ của người
+học. Theo quyết định `2026-08-03-mandatory-daily-topic-vocabulary`, mỗi Ngày bắt buộc có một phiên
+10 từ; phiên vẫn không thay thế Bài hoặc checkpoint trong lộ trình HSK 1–6.
 
 ## User Scenarios
 
@@ -33,8 +33,8 @@ hoặc checkpoint trong lộ trình HSK 1–6.
 
 ## Functional Requirements
 
-- FR-1: Hệ thống MUST cung cấp một khu vực từ vựng theo chủ đề tách biệt với lộ trình bài học hằng
-  ngày.
+- FR-1: Hệ thống MUST cung cấp khu vực từ vựng theo chủ đề có thể mở độc lập và được liên kết như
+  một bước bắt buộc trong từng Ngày học.
 - FR-2: Hệ thống MUST hiển thị các chủ đề do AI đề xuất cùng tên tiếng Việt, mô tả ngắn, lý do đề
   xuất, số từ và tiến độ của người học trong từng chủ đề.
 - FR-3: Mỗi lần đề xuất MUST cung cấp ít nhất 5 chủ đề khác nhau, phù hợp với cấp HSK, lịch sử học
@@ -65,8 +65,8 @@ hoặc checkpoint trong lộ trình HSK 1–6.
   và trên thiết bị khác khi đăng nhập cùng tài khoản.
 - FR-17: Hoàn thành ít nhất một phiên theo chủ đề trong ngày MUST được tính là hoạt động duy trì
   streak.
-- FR-18: Hoàn thành phiên theo chủ đề MUST NOT đánh dấu hoàn thành bài trong lộ trình hằng ngày,
-  MUST NOT mở khóa checkpoint và MUST NOT thay đổi cấp HSK của người học.
+- FR-18: Hoàn thành phiên theo chủ đề MUST NOT đánh dấu hoàn thành một Bài và MUST NOT tự thay đổi
+  cấp HSK; phiên MUST tham gia điều kiện mở checkpoint theo đặc tả `mandatory-daily-topic-vocabulary`.
 - FR-19: Hệ thống MUST cho phép người học yêu cầu danh sách đề xuất chủ đề mới và MUST tránh lặp
   toàn bộ danh sách đề xuất gần nhất khi vẫn còn chủ đề phù hợp khác.
 - FR-20: Nội dung theo chủ đề MUST tuân thủ cùng tiêu chuẩn kiểm soát phạm vi HSK, tính đầy đủ,
@@ -103,8 +103,8 @@ hoặc checkpoint trong lộ trình HSK 1–6.
   từ đã có trong lịch ôn hoặc sổ từ.
 - [x] AC-5 (FR-15–FR-16): Tải lại hoặc đăng nhập trên thiết bị khác vẫn hiển thị đúng tiến độ chủ
   đề và tiếp tục từ phần chưa hoàn thành.
-- [x] AC-6 (FR-17–FR-18): Phiên chủ đề cập nhật streak nhưng không hoàn thành bài, mở checkpoint
-  hoặc thay đổi cấp HSK.
+- [ ] AC-6 (FR-17–FR-18): Phiên chủ đề cập nhật streak, không hoàn thành Bài hay đổi cấp HSK, và
+  được ghi nhận đúng vào điều kiện mở checkpoint của một Ngày.
 - [x] AC-7 (FR-19–FR-20): Người học yêu cầu được danh sách đề xuất mới; nội dung phát hành vượt qua
   các kiểm tra chất lượng hiện hành.
 - [x] AC-8 (FR-21–FR-22): Khi AI không khả dụng, người học vẫn chọn được chủ đề dự phòng; mọi trạng

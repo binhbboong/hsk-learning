@@ -60,6 +60,7 @@ class DailyPathService:
                             lesson_ids=[lesson.id for lesson in LESSONS],
                             checkpoint_id=CHECKPOINT.id,
                             completed_lesson_count=0,
+                            topic_vocabulary_completed=False,
                             checkpoint_completed=False,
                             status="current",
                         )
@@ -116,8 +117,12 @@ class DailyPathService:
             for day_number, level, difficulty, day_lessons, checkpoint in day_sources
         ]
         latest_lesson_ids = [lesson.id for lesson in lessons[-5:]]
-        mastered_latest = all(
-            lesson_id in profile.completedLessonIds for lesson_id in latest_lesson_ids
+        mastered_latest = (
+            self._completed_topic_session_count(profile) >= current_path_index
+            and all(
+                lesson_id in profile.completedLessonIds
+                for lesson_id in latest_lesson_ids
+            )
         ) and self._is_mastered(
             profile,
             self._checkpoint_for(account_id, checkpoint_start) or base_checkpoint,
@@ -186,6 +191,10 @@ class DailyPathService:
         lesson_ids = [lesson.id for lesson in latest_lessons]
         if not all(lesson_id in profile.completedLessonIds for lesson_id in lesson_ids):
             raise DailyPathNotReadyError("Hãy hoàn thành đủ 5 Bài của Ngày hiện tại.")
+        if self._completed_topic_session_count(profile) < next_path_index - 1:
+            raise DailyPathNotReadyError(
+                "Hãy hoàn thành phiên 10 từ theo chủ đề của Ngày hiện tại."
+            )
         checkpoint_rate = self._checkpoint_rate(profile, latest_checkpoint.id)
         if checkpoint_rate is None:
             raise DailyPathNotReadyError("Hãy hoàn thành checkpoint của Ngày hiện tại.")
@@ -368,7 +377,14 @@ class DailyPathService:
             result.get("checkpointId") == checkpoint.id
             for result in profile.checkpointResults
         )
-        completed = completed_count == 5 and checkpoint_completed
+        topic_vocabulary_completed = (
+            DailyPathService._completed_topic_session_count(profile) >= day_number
+        )
+        completed = (
+            completed_count == 5
+            and topic_vocabulary_completed
+            and checkpoint_completed
+        )
         return LearningDaySummary(
             day_number=day_number,
             level=level,
@@ -378,6 +394,7 @@ class DailyPathService:
             lesson_ids=lesson_ids,
             checkpoint_id=checkpoint.id,
             completed_lesson_count=completed_count,
+            topic_vocabulary_completed=topic_vocabulary_completed,
             checkpoint_completed=checkpoint_completed,
             status="completed" if completed else "current",
         )
@@ -428,6 +445,14 @@ class DailyPathService:
             return 0.0
         remembered = sum(1 for card in cards if int(card.get("repetitions", 0)) > 0)
         return remembered / len(cards)
+
+    @staticmethod
+    def _completed_topic_session_count(profile: LearningProfilePayload) -> int:
+        return sum(
+            1
+            for item in profile.topicVocabularyProgress
+            if item.get("phase") == "completed"
+        )
 
     @staticmethod
     def _validate_requested_bundle(

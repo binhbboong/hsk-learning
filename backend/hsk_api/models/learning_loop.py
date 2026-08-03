@@ -22,6 +22,7 @@ class LearningDaySummary(BaseModel):
     lesson_ids: list[str] = Field(min_length=5, max_length=5)
     checkpoint_id: str
     completed_lesson_count: int = Field(ge=0, le=5)
+    topic_vocabulary_completed: bool
     checkpoint_completed: bool
     status: Literal["completed", "current"]
 
@@ -30,9 +31,13 @@ class LearningDaySummary(BaseModel):
         if self.lesson_end != self.lesson_start + 4:
             raise ValueError("A learning day must cover exactly five lessons")
         if self.status == "completed" and (
-            self.completed_lesson_count != 5 or not self.checkpoint_completed
+            self.completed_lesson_count != 5
+            or not self.topic_vocabulary_completed
+            or not self.checkpoint_completed
         ):
-            raise ValueError("A completed learning day needs five lessons and its checkpoint")
+            raise ValueError(
+                "A completed learning day needs five lessons, topic vocabulary, and its checkpoint"
+            )
         return self
 
 

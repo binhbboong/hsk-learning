@@ -38,15 +38,15 @@ phải đưa người học tuần tự từ HSK 1 đến HSK 6.
 
 ## Functional Requirements
 
-- FR-1: Mỗi chặng học hằng ngày MUST gồm đúng 5 bài và một checkpoint sau 5 bài đó.
+- FR-1: Mỗi chặng học hằng ngày MUST gồm đúng 5 bài, một phiên 10 từ theo chủ đề và một checkpoint sau các bước đó.
 - FR-2: Các bài MUST được đánh số liên tục giữa các chặng, ví dụ Bài 1–5, Bài 6–10 và
   Bài 11–15.
 - FR-3: Mỗi bài AI MUST có hội thoại, từ vựng, bài nghe chọn đáp án, bài sắp xếp câu và bài
   luyện phát âm.
 - FR-4: Nội dung AI MUST giải thích bằng tiếng Việt, có Pinyin đúng dấu và nêu hỗ trợ phù hợp
   cho người Việt khi nội dung có điểm phát âm dễ sai.
-- FR-5: Chặng tiếp theo MUST chỉ được mở sau khi người học hoàn thành đủ 5 bài và checkpoint
-  của chặng hiện tại.
+- FR-5: Chặng tiếp theo MUST chỉ được mở sau khi người học hoàn thành đủ 5 bài, phiên 10 từ theo
+  chủ đề và checkpoint của chặng hiện tại.
 - FR-6: Sau khi đủ điều kiện mở, hệ thống MUST tạo hoặc cung cấp một chặng 5 bài tiếp theo
   thay vì báo rằng toàn bộ lộ trình đã hoàn thành.
 - FR-7: Hệ thống MUST lưu cố định mỗi chặng đã tạo cho người học; tải lại trang, đăng nhập lại
