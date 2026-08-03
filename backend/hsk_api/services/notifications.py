@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Protocol
 from zoneinfo import ZoneInfo
 
@@ -38,16 +38,24 @@ class LearningReminderService:
     chat_id: str
     account_email: str
     timezone_name: str = "Asia/Ho_Chi_Minh"
-    reminder_start_hour: int = 18
+    reminder_start_hour: int = 19
+    reminder_start_minute: int = 10
+    reminder_interval: timedelta = timedelta(minutes=30)
     clock: Callable[[], datetime] = lambda: datetime.now(UTC)
 
     @property
     def configured(self) -> bool:
         return bool(self.sender and self.chat_id and self.account_email)
 
-    def run_hourly_reminder(self) -> str:
+    def run_scheduled_reminder(self) -> str:
         local_now = self.clock().astimezone(ZoneInfo(self.timezone_name))
-        if local_now.hour < self.reminder_start_hour:
+        reminder_start = local_now.replace(
+            hour=self.reminder_start_hour,
+            minute=self.reminder_start_minute,
+            second=0,
+            microsecond=0,
+        )
+        if local_now < reminder_start:
             return "outside_reminder_window"
         if not self.configured:
             return "not_configured"
@@ -57,13 +65,29 @@ class LearningReminderService:
         current_day = self.daily_paths.overview(account.id).days[-1]
         if current_day.status == "completed":
             return "already_completed"
+        delivery_at = local_now.astimezone(UTC)
+        reminder_date = local_now.date().isoformat()
+        if not self.repository.claim_reminder_delivery(
+            account.id,
+            reminder_date,
+            delivery_at,
+            self.reminder_interval,
+        ):
+            return "cooldown_active"
         message = (
             f"⏰ Bạn chưa hoàn thành lộ trình Ngày {current_day.day_number}. "
             f"Tiến độ hiện tại: {current_day.completed_lesson_count}/5 bài, "
             f"từ vựng chủ đề: {'xong' if current_day.topic_vocabulary_completed else 'chưa xong'}, "
             f"checkpoint: {'xong' if current_day.checkpoint_completed else 'chưa xong'}."
         )
-        return "reminder_sent" if self._send(message) else "delivery_failed"
+        if self._send(message):
+            return "reminder_sent"
+        self.repository.release_reminder_delivery(
+            account.id,
+            reminder_date,
+            delivery_at,
+        )
+        return "delivery_failed"
 
     def send_progress_summary(self) -> str:
         if not self.configured:

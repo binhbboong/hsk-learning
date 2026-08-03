@@ -24,7 +24,7 @@ def verify_cron_secret(request: Request) -> None:
 @router.get("/learning-reminder")
 def learning_reminder(request: Request) -> dict[str, str]:
     verify_cron_secret(request)
-    result = request.app.state.learning_reminder_service.run_hourly_reminder()
+    result = request.app.state.learning_reminder_service.run_scheduled_reminder()
     return {"status": result}
 
 

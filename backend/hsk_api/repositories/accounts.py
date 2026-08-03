@@ -101,6 +101,12 @@ class AccountRepository:
                     account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                     expires_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS reminder_deliveries (
+                    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+                    reminder_date TEXT NOT NULL,
+                    sent_at TEXT NOT NULL,
+                    PRIMARY KEY(account_id, reminder_date)
+                );
                 CREATE TABLE IF NOT EXISTS learning_profiles (
                     account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
                     payload TEXT NOT NULL,
@@ -329,6 +335,48 @@ class AccountRepository:
                 (email.strip().lower(),),
             ).fetchone()
         return self._to_account(row)
+
+    def claim_reminder_delivery(
+        self,
+        account_id: str,
+        reminder_date: str,
+        sent_at: datetime,
+        cooldown: timedelta,
+    ) -> bool:
+        sent_at_utc = sent_at.astimezone(UTC)
+        cooldown_threshold = sent_at_utc - cooldown
+        with self._connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO reminder_deliveries(account_id, reminder_date, sent_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(account_id, reminder_date) DO UPDATE SET
+                    sent_at = excluded.sent_at
+                WHERE reminder_deliveries.sent_at <= ?
+                """,
+                (
+                    account_id,
+                    reminder_date,
+                    sent_at_utc.isoformat(),
+                    cooldown_threshold.isoformat(),
+                ),
+            )
+        return cursor.rowcount == 1
+
+    def release_reminder_delivery(
+        self,
+        account_id: str,
+        reminder_date: str,
+        sent_at: datetime,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """
+                DELETE FROM reminder_deliveries
+                WHERE account_id = ? AND reminder_date = ? AND sent_at = ?
+                """,
+                (account_id, reminder_date, sent_at.astimezone(UTC).isoformat()),
+            )
 
     def create_session(self, account_id: str, token: str) -> None:
         expires_at = datetime.now(UTC) + timedelta(days=30)

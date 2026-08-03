@@ -128,8 +128,8 @@ Tài khoản phải đăng xuất và đăng nhập lại sau khi email được
 3. Đặt `TELEGRAM_ACCOUNT_EMAIL` bằng email tài khoản HSK Learning cần theo dõi và tạo
    một `CRON_SECRET` ngẫu nhiên, dài.
 4. Thêm cùng giá trị `CRON_SECRET` vào GitHub Actions secret của repository và deploy lại
-   backend. Workflow gọi endpoint mỗi giờ từ 18:00–23:00 theo giờ Việt Nam, lặp lại khi
-   Ngày hiện tại chưa hoàn thành.
+   backend. Workflow kiểm tra mỗi 5 phút từ 19:00–23:59 theo giờ Việt Nam. Backend bắt đầu
+   nhắc từ 19:10, giới hạn tối đa một tin nhắn mỗi 30 phút và dừng khi Ngày hiện tại hoàn thành.
 
 Bot gửi thông báo hoàn thành ngay khi Ngày hiện tại chuyển sang đủ 5 bài, phiên từ vựng
 theo chủ đề và checkpoint. Lỗi kết nối Telegram không chặn việc lưu tiến độ học.

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -34,14 +34,23 @@ def completed_profile() -> dict:
     }
 
 
-def configured_app(tmp_path: Path, sender: FakeTelegramSender, hour_utc: int):
+def configured_app(
+    tmp_path: Path,
+    sender: FakeTelegramSender,
+    hour_utc: int,
+    reminder_clock=None,
+):
     return create_app(
         database_path=tmp_path / f"telegram-{hour_utc}.sqlite3",
         telegram_sender=sender,
         telegram_chat_id="123456",
         telegram_account_email="binh@example.com",
         cron_secret="cron-test-secret",
-        reminder_clock=lambda: datetime(2026, 8, 3, hour_utc, tzinfo=UTC),
+        reminder_clock=(
+            reminder_clock
+            if reminder_clock is not None
+            else lambda: datetime(2026, 8, 3, hour_utc, tzinfo=UTC)
+        ),
     )
 
 
@@ -56,9 +65,16 @@ def test_cron_rejects_requests_without_the_secret(tmp_path: Path) -> None:
     assert sender.messages == []
 
 
-def test_does_not_remind_before_18h_vietnam_time(tmp_path: Path) -> None:
+def test_does_not_remind_before_19h10_vietnam_time(tmp_path: Path) -> None:
     sender = FakeTelegramSender()
-    client = TestClient(configured_app(tmp_path, sender, hour_utc=10))
+    client = TestClient(
+        configured_app(
+            tmp_path,
+            sender,
+            hour_utc=12,
+            reminder_clock=lambda: datetime(2026, 8, 3, 12, 9, tzinfo=UTC),
+        )
+    )
     register(client)
 
     response = client.get(
@@ -71,17 +87,31 @@ def test_does_not_remind_before_18h_vietnam_time(tmp_path: Path) -> None:
     assert sender.messages == []
 
 
-def test_reminds_each_cron_run_from_18h_while_day_is_incomplete(tmp_path: Path) -> None:
+def test_five_minute_polls_send_at_most_once_every_30_minutes(tmp_path: Path) -> None:
     sender = FakeTelegramSender()
-    client = TestClient(configured_app(tmp_path, sender, hour_utc=11))
+    now = {"value": datetime(2026, 8, 3, 12, 10, tzinfo=UTC)}
+    client = TestClient(
+        configured_app(
+            tmp_path,
+            sender,
+            hour_utc=12,
+            reminder_clock=lambda: now["value"],
+        )
+    )
     register(client)
     headers = {"Authorization": "Bearer cron-test-secret"}
 
     first = client.get("/api/cron/learning-reminder", headers=headers)
     second = client.get("/api/cron/learning-reminder", headers=headers)
+    now["value"] += timedelta(minutes=29)
+    third = client.get("/api/cron/learning-reminder", headers=headers)
+    now["value"] += timedelta(minutes=1)
+    fourth = client.get("/api/cron/learning-reminder", headers=headers)
 
     assert first.json()["status"] == "reminder_sent"
-    assert second.json()["status"] == "reminder_sent"
+    assert second.json()["status"] == "cooldown_active"
+    assert third.json()["status"] == "cooldown_active"
+    assert fourth.json()["status"] == "reminder_sent"
     assert len(sender.messages) == 2
     assert "Ngày 1" in sender.messages[0][1]
     assert "chưa hoàn thành" in sender.messages[0][1]
@@ -89,7 +119,14 @@ def test_reminds_each_cron_run_from_18h_while_day_is_incomplete(tmp_path: Path) 
 
 def test_completed_day_is_not_reminded(tmp_path: Path) -> None:
     sender = FakeTelegramSender()
-    client = TestClient(configured_app(tmp_path, sender, hour_utc=11))
+    client = TestClient(
+        configured_app(
+            tmp_path,
+            sender,
+            hour_utc=12,
+            reminder_clock=lambda: datetime(2026, 8, 3, 12, 10, tzinfo=UTC),
+        )
+    )
     profile_headers = register(client)
     client.put("/api/v1/profile", json=completed_profile(), headers=profile_headers)
     sender.messages.clear()

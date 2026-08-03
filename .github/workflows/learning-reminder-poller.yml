@@ -1,0 +1,29 @@
+name: Kiểm tra nhắc tiến độ HSK mỗi 5 phút
+
+on:
+  schedule:
+    # GitHub Actions dùng UTC: 12:00–16:59 tương ứng 19:00–23:59 Việt Nam.
+    # Backend bắt đầu gửi từ 19:10 và giới hạn một tin nhắn mỗi 30 phút.
+    - cron: "*/5 12-16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: learning-reminder-poller
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Kiểm tra và gửi nhắc tiến độ nếu đến hạn
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-delay 10 --retry-all-errors \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            https://hsk-learning-api.vercel.app/api/cron/learning-reminder
