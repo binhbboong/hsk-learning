@@ -115,3 +115,22 @@ def test_profile_transition_sends_one_completion_message(tmp_path: Path) -> None
     assert second.status_code == 200
     assert len(sender.messages) == 1
     assert "đã hoàn thành lộ trình Ngày 1" in sender.messages[0][1]
+
+
+def test_manual_progress_summary_sends_before_the_reminder_window(
+    tmp_path: Path,
+) -> None:
+    sender = FakeTelegramSender()
+    client = TestClient(configured_app(tmp_path, sender, hour_utc=9))
+    register(client)
+
+    response = client.post(
+        "/api/cron/learning-progress",
+        headers={"Authorization": "Bearer cron-test-secret"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "progress_sent"
+    assert len(sender.messages) == 1
+    assert "TIẾN ĐỘ HỌC HSK HÔM NAY" in sender.messages[0][1]
+    assert "Bài học: 0/5" in sender.messages[0][1]

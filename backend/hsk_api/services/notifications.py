@@ -65,6 +65,48 @@ class LearningReminderService:
         )
         return "reminder_sent" if self._send(message) else "delivery_failed"
 
+    def send_progress_summary(self) -> str:
+        if not self.configured:
+            return "not_configured"
+        account = self.repository.find_by_email(self.account_email)
+        if account is None:
+            return "account_not_found"
+        current_day = self.daily_paths.overview(account.id).days[-1]
+        completed = current_day.status == "completed"
+        message = "\n".join(
+            [
+                "📊 TIẾN ĐỘ HỌC HSK HÔM NAY",
+                "",
+                f"Tài khoản: {account.email}",
+                f"Lộ trình: Ngày {current_day.day_number} · HSK {current_day.level}",
+                "",
+                f"📚 Bài học: {current_day.completed_lesson_count}/5",
+                (
+                    "🧠 Từ vựng chủ đề: "
+                    + (
+                        "Đã hoàn thành"
+                        if current_day.topic_vocabulary_completed
+                        else "Chưa hoàn thành"
+                    )
+                ),
+                (
+                    "✅ Checkpoint: "
+                    + (
+                        "Đã hoàn thành"
+                        if current_day.checkpoint_completed
+                        else "Chưa hoàn thành"
+                    )
+                ),
+                "",
+                (
+                    "🎉 Bạn đã hoàn thành tiến độ hôm nay!"
+                    if completed
+                    else "⏳ Bạn chưa hoàn thành tiến độ hôm nay."
+                ),
+            ]
+        )
+        return "progress_sent" if self._send(message) else "delivery_failed"
+
     def notify_completion(
         self,
         account: AccountRecord,
