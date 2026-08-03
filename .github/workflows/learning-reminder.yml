@@ -2,8 +2,8 @@ name: Nhắc tiến độ học HSK
 
 on:
   schedule:
-    # GitHub Actions dùng UTC: 12:10–13:10 tương ứng 19:10 và 20:10 Việt Nam.
-    - cron: "10 12-13 * * *"
+    # GitHub Actions dùng UTC: 12:10–16:10 tương ứng 19:10–23:10 Việt Nam.
+    - cron: "10 12-16 * * *"
   workflow_dispatch:
 
 permissions:
