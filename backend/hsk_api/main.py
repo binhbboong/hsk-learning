@@ -149,8 +149,8 @@ def create_app(
         topic_vocabulary_generator = (
             OpenAITopicVocabularyGenerator.from_api_key(
                 api_key=key,
-                model=settings.openai_model,
-                timeout_seconds=settings.openai_timeout_seconds,
+                model=settings.openai_topic_vocabulary_model,
+                timeout_seconds=settings.openai_topic_vocabulary_timeout_seconds,
             )
             if key
             else None

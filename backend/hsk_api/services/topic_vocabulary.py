@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from typing import Any, Protocol
 
 from hsk_api.content.topic_vocabulary import curated_recommendations, curated_session
@@ -8,6 +9,9 @@ from hsk_api.models.topic_vocabulary import (
     TopicVocabularySession,
 )
 from hsk_api.repositories.accounts import AccountRepository
+
+
+logger = logging.getLogger(__name__)
 
 
 class TopicVocabularyGenerator(Protocol):
@@ -56,6 +60,7 @@ class TopicVocabularyService:
                     result = None
             # Provider/network errors must never block the curated learning path.
             except Exception:
+                logger.exception("Topic recommendation generation failed")
                 result = None
         if result is None:
             curated = curated_recommendations(level)

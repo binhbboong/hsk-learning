@@ -1,7 +1,9 @@
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
+from hsk_api.config import Settings
 from hsk_api.main import create_app
 
 
@@ -81,6 +83,36 @@ def test_topic_vocabulary_requires_authentication(tmp_path: Path) -> None:
     ).status_code == 401
 
 
+def test_topic_vocabulary_uses_a_dedicated_generation_timeout(
+    tmp_path: Path,
+) -> None:
+    settings = Settings(
+        openai_api_key="test-key",
+        openai_timeout_seconds=15,
+        openai_topic_vocabulary_model="gpt-4.1-mini",
+        openai_topic_vocabulary_timeout_seconds=60,
+    )
+
+    with (
+        patch("hsk_api.main.get_settings", return_value=settings),
+        patch(
+            "hsk_api.main.OpenAITopicVocabularyGenerator.from_api_key",
+        ) as factory,
+    ):
+        create_app(
+            database_path=tmp_path / "topic-timeout.sqlite3",
+            pronunciation_analyzer=None,
+            speech_synthesizer=None,
+            daily_path_generator=None,
+        )
+
+    factory.assert_called_once_with(
+        api_key="test-key",
+        model="gpt-4.1-mini",
+        timeout_seconds=60,
+    )
+
+
 def test_returns_curated_recommendations_when_ai_is_unavailable(tmp_path: Path) -> None:
     client = TestClient(
         create_app(
@@ -129,7 +161,10 @@ def test_refreshes_curated_recommendations_when_alternatives_exist(tmp_path: Pat
     }
 
 
-def test_falls_back_when_the_ai_provider_rejects_the_request(tmp_path: Path) -> None:
+def test_falls_back_when_the_ai_provider_rejects_the_request(
+    tmp_path: Path,
+    caplog,
+) -> None:
     client = TestClient(
         create_app(
             database_path=tmp_path / "provider-error.sqlite3",
@@ -147,6 +182,8 @@ def test_falls_back_when_the_ai_provider_rejects_the_request(tmp_path: Path) -> 
 
     assert response.status_code == 200
     assert response.json()["source"] == "curated"
+    assert "Topic recommendation generation failed" in caplog.text
+    assert "provider rejected the configured key" in caplog.text
 
 
 def test_refreshes_ai_recommendations_without_repeating_the_whole_list(

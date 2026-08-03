@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     openai_speech_model: str = "gpt-4o-mini-tts"
     openai_speech_voice: str = "coral"
     openai_timeout_seconds: float = 15.0
+    openai_topic_vocabulary_model: str = "gpt-4.1-mini"
+    openai_topic_vocabulary_timeout_seconds: float = 60.0
     openai_daily_path_timeout_seconds: float = 180.0
     ai_account_daily_limit: int = 10
     ai_system_daily_limit: int = 50
