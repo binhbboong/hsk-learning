@@ -117,6 +117,45 @@ def test_local_polls_send_at_most_once_every_15_minutes(tmp_path: Path) -> None:
     assert "chưa hoàn thành" in sender.messages[0][1]
 
 
+def test_scheduled_reminder_uses_the_full_progress_template(tmp_path: Path) -> None:
+    sender = FakeTelegramSender()
+    client = TestClient(
+        configured_app(
+            tmp_path,
+            sender,
+            hour_utc=12,
+            reminder_clock=lambda: datetime(2026, 8, 3, 12, 10, tzinfo=UTC),
+        )
+    )
+    register(client)
+
+    response = client.get(
+        "/api/cron/learning-reminder",
+        headers={"Authorization": "Bearer cron-test-secret"},
+    )
+
+    assert response.json()["status"] == "reminder_sent"
+    assert sender.messages == [
+        (
+            "123456",
+            "\n".join(
+                [
+                    "📊 TIẾN ĐỘ HỌC HSK HÔM NAY",
+                    "",
+                    "Tài khoản: binh@example.com",
+                    "Lộ trình: Ngày 1 · HSK 1",
+                    "",
+                    "📚 Bài học: 0/5",
+                    "🧠 Từ vựng chủ đề: Chưa hoàn thành",
+                    "✅ Checkpoint: Chưa hoàn thành",
+                    "",
+                    "⏳ Bạn chưa hoàn thành tiến độ hôm nay.",
+                ]
+            ),
+        )
+    ]
+
+
 def test_completed_day_is_not_reminded(tmp_path: Path) -> None:
     sender = FakeTelegramSender()
     client = TestClient(

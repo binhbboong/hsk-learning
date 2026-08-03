@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import httpx
 
 from hsk_api.models.account import AccountRecord
-from hsk_api.models.learning_loop import LearningPath
+from hsk_api.models.learning_loop import LearningDaySummary, LearningPath
 from hsk_api.repositories.accounts import AccountRepository
 from hsk_api.services.daily_paths import DailyPathService
 
@@ -74,12 +74,7 @@ class LearningReminderService:
             self.reminder_interval,
         ):
             return "cooldown_active"
-        message = (
-            f"⏰ Bạn chưa hoàn thành lộ trình Ngày {current_day.day_number}. "
-            f"Tiến độ hiện tại: {current_day.completed_lesson_count}/5 bài, "
-            f"từ vựng chủ đề: {'xong' if current_day.topic_vocabulary_completed else 'chưa xong'}, "
-            f"checkpoint: {'xong' if current_day.checkpoint_completed else 'chưa xong'}."
-        )
+        message = self._progress_message(account, current_day)
         if self._send(message):
             return "reminder_sent"
         self.repository.release_reminder_delivery(
@@ -96,6 +91,14 @@ class LearningReminderService:
         if account is None:
             return "account_not_found"
         current_day = self.daily_paths.overview(account.id).days[-1]
+        message = self._progress_message(account, current_day)
+        return "progress_sent" if self._send(message) else "delivery_failed"
+
+    @staticmethod
+    def _progress_message(
+        account: AccountRecord,
+        current_day: LearningDaySummary,
+    ) -> str:
         completed = current_day.status == "completed"
         message = "\n".join(
             [
@@ -129,7 +132,7 @@ class LearningReminderService:
                 ),
             ]
         )
-        return "progress_sent" if self._send(message) else "delivery_failed"
+        return message
 
     def notify_completion(
         self,
